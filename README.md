@@ -26,6 +26,8 @@ lost_robot/
 │   ├── stage2_noiseless.py     #   fig3, fig4, stage2.json
 │   ├── noise.py                #   fig5, noise.json            (FakeTorino noise, both stages)
 │   ├── stage2_bennett.py       #   fig6, stage2_bennett.json   (honest stage-2 oracle, ~15 min)
+│   ├── circuit_diagrams.py     #   circuit1–3 (readable circuit drawings)
+│   ├── ibm_hardware.py         #   real IBM hardware run (rehearse / submit / fetch)
 │   └── precompute_ui.py        #   frontend/js/qdata.js        (all results the demo shows)
 ├── results/                    # every figure and data file
 ├── tests/                      # 68 checks: each test is one claim about the circuits
@@ -73,6 +75,16 @@ in-place H–MCX–H multi-controlled Z), uncompute. Three versions with the sam
 | formula | yes | each wall bit as a cheapest fixed-polarity Reed–Muller formula (XOR of ANDs) of the position bits | 62 |
 | compiled | **no** | one `DiagonalGate` built from the classical answer, a lower bound on cost | 14 |
 
+The whole stage-1 search (k = 2): superposition, then oracle → diffuser twice, then measure.
+
+![Stage 1 Grover circuit](results/circuit1_grover_stage1.png)
+
+Inside the honest formula oracle for the corner reading (N + W walls): **compute** the wall bits
+from the position bits, **compare** with the reading and flip the phase, **uncompute**. The
+uncompute half is the compute half run again, which returns the wall qubits to |0⟩.
+
+![Stage 1 formula oracle](results/circuit2_oracle_stage1.png)
+
 **Stage 2 oracle** (`quantum/stage2.py`, 12 qubits: plan 6 + pos 4 + one flag per start):
 
 | Qubit-saving idea | How it shows up |
@@ -83,6 +95,12 @@ in-place H–MCX–H multi-controlled Z), uncompute. Three versions with the sam
 | Move 3 needs no position register | only "does move(pos, m3) land on home?" goes into a flag |
 | Ancilla reuse via uncompute | walk A → flag a → undo; walk B reuses the same `pos` qubits |
 | In-place phase flip | CZ on the flags (H–MCX–H in general), no extra \|−⟩ qubit |
+
+Inside the honest stage-2 oracle for two possible starts: walk A, copy "home?" into flag a, undo
+walk A; walk B on the **same** `pos` qubits, flag b, CZ(a, b) flips the phase only if both reach
+home; then everything is undone so every helper qubit is back at |0⟩.
+
+![Stage 2 Bennett oracle](results/circuit3_oracle_stage2.png)
 
 ## Results
 

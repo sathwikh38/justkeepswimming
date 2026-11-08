@@ -4,3 +4,4 @@ qiskit-ibm-runtime
 matplotlib
 numpy
 pytest
+pylatexenc
