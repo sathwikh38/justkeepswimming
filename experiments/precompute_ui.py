@@ -1,7 +1,7 @@
 """
 Precompute the Qiskit results the frontend shows, for the frontend's own building.
 
-    python precompute_ui.py          # a few minutes (6 processes); writes frontend/js/qdata.js
+    python -m experiments.precompute_ui     # a few minutes (6 processes); writes frontend/js/qdata.js
 
 The map is read straight from frontend/js/world.js (WALLS), so UI and Qiskit always agree.
 
@@ -21,17 +21,15 @@ The ideal runs use the compiled oracles: they are exactly the same unitary as th
 import json
 import re
 from functools import reduce
-from itertools import product
-from pathlib import Path
 
-from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister, transpile
+from qiskit import transpile
 from qiskit.quantum_info import Statevector
 from qiskit_aer import AerSimulator
 from qiskit_ibm_runtime.fake_provider import FakeTorino
 
-from formula_oracle import formula_oracle
-from localize import DIRS, GridMap, best_k, compiled_oracle, diffuser, theory_success
-from stage2 import N_PLANS, bennett_plan_oracle, decode, good_plans, plan_search_circuit
+from experiments import ROOT
+from quantum.stage1 import ORACLES, DIRS, GridMap, best_k, grover_circuit, theory_success
+from quantum.stage2 import N_PLANS, bennett_plan_oracle, decode, good_plans, plan_search_circuit
 
 MAX_MOVES = 3
 SHOTS = 2000
@@ -39,11 +37,8 @@ NOISY_K_CAP = 2
 
 
 def ui_map() -> GridMap:
-    src = Path("frontend/js/world.js").read_text()
-    rows = re.findall(r'"([01]{4})"', re.search(r"const WALLS = \[(.*?)\]", src, re.S).group(1))
-    g = GridMap()
-    g.walls = {g.cell(x): [int(b) for b in rows[x]] for x in range(16)}
-    return g
+    src = (ROOT / "frontend/js/world.js").read_text()
+    return GridMap.from_walls(re.findall(r'"([01]{4})"', re.search(r"const WALLS = \[(.*?)\]", src, re.S).group(1)))
 
 
 G = ui_map()
@@ -53,21 +48,6 @@ noisy = AerSimulator.from_backend(device)
 
 def two_q(t):
     return sum(v for g, v in t.count_ops().items() if g in ("cz", "cx", "ecr"))
-
-
-def grover(make_oracle, readings, moves, k, measure):
-    o = make_oracle(G, readings, moves)
-    pos = QuantumRegister(4, "pos")
-    regs = [pos] + ([QuantumRegister(o.num_qubits - 4, "walls")] if o.num_qubits > 4 else [])
-    qc = QuantumCircuit(*regs)
-    qc.h(pos)
-    for _ in range(k):
-        qc.compose(o, qc.qubits, inplace=True)
-        qc.compose(diffuser(4), pos, inplace=True)
-    if measure:
-        qc.add_register(ClassicalRegister(4, "cell"))
-        qc.measure(pos, qc.clbits)
-    return qc
 
 
 def noisy_probs(qc, n):
@@ -119,14 +99,14 @@ def stage1_case(args):
     cands = G.candidates(readings, mv)
     M, k = len(cands), best_k(16, len(cands))
     kn = min(k, NOISY_K_CAP)
-    ideal = Statevector(grover(compiled_oracle, readings, mv, k, False)).probabilities(range(4))
-    noisy_p, noisy_2q = noisy_probs(grover(compiled_oracle, readings, mv, kn, True), 4)
-    f_2q = two_q(transpile(formula_oracle(G, readings, mv), basis_gates=["cx", "u"], optimization_level=1))
+    ideal = Statevector(grover_circuit(G, readings, mv, k, "compiled", measure=False)).probabilities(range(4))
+    noisy_p, noisy_2q = noisy_probs(grover_circuit(G, readings, mv, kn, "compiled"), 4)
+    f_2q = two_q(transpile(ORACLES['formula'](G, readings, mv), basis_gates=["cx", "u"], optimization_level=1))
     e = dict(M=M, k=k, k_noisy=kn, theory=round(theory_success(16, M, k), 4),
              ideal=r3(ideal), noisy=r3(noisy_p), noisy_2q=noisy_2q,
              honest_qubits=4 + 4 * len(readings), honest_2q=f_2q, honest_noisy=None)
     if mv == "":
-        hp, _ = noisy_probs(grover(formula_oracle, readings, mv, kn, True), 4)
+        hp, _ = noisy_probs(grover_circuit(G, readings, mv, kn, "formula"), 4)
         e["honest_noisy"] = round(sum(hp[c] for c in cands), 3)
     return key1(mv, readings), e
 
@@ -166,5 +146,5 @@ if __name__ == "__main__":
         print("stage 2 done", flush=True)
 
     data = dict(device=device.name, shots=SHOTS, max_moves=MAX_MOVES, plan_moves=3, stage1=stage1, stage2=stage2)
-    Path("frontend/js/qdata.js").write_text("window.QDATA = " + json.dumps(data, separators=(",", ":")) + ";\n")
+    (ROOT / "frontend/js/qdata.js").write_text("window.QDATA = " + json.dumps(data, separators=(",", ":")) + ";\n")
     print(f"wrote frontend/js/qdata.js: {len(stage1)} stage-1 cases, {len(stage2)} stage-2 cases")

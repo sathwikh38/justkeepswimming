@@ -1,0 +1,141 @@
+{
+ "shots": 4000,
+ "rows": [
+  {
+   "map": "open room",
+   "case": "interior",
+   "M": 4,
+   "k": 0,
+   "theory": 0.24999999999999994,
+   "measured": 0.23425
+  },
+  {
+   "map": "open room",
+   "case": "interior",
+   "M": 4,
+   "k": 1,
+   "theory": 1.0,
+   "measured": 1.0
+  },
+  {
+   "map": "open room",
+   "case": "interior",
+   "M": 4,
+   "k": 2,
+   "theory": 0.25000000000000033,
+   "measured": 0.245
+  },
+  {
+   "map": "open room",
+   "case": "interior",
+   "M": 4,
+   "k": 3,
+   "theory": 0.24999999999999978,
+   "measured": 0.245
+  },
+  {
+   "map": "open room",
+   "case": "interior",
+   "M": 4,
+   "k": 4,
+   "theory": 1.0,
+   "measured": 1.0
+  },
+  {
+   "map": "open room",
+   "case": "edge",
+   "M": 2,
+   "k": 0,
+   "theory": 0.12500000000000003,
+   "measured": 0.13175
+  },
+  {
+   "map": "open room",
+   "case": "edge",
+   "M": 2,
+   "k": 1,
+   "theory": 0.7812500000000001,
+   "measured": 0.77925
+  },
+  {
+   "map": "open room",
+   "case": "edge",
+   "M": 2,
+   "k": 2,
+   "theory": 0.9453124999999999,
+   "measured": 0.943
+  },
+  {
+   "map": "open room",
+   "case": "edge",
+   "M": 2,
+   "k": 3,
+   "theory": 0.330078125,
+   "measured": 0.33
+  },
+  {
+   "map": "open room",
+   "case": "edge",
+   "M": 2,
+   "k": 4,
+   "theory": 0.01220703125000009,
+   "measured": 0.013
+  },
+  {
+   "map": "open room",
+   "case": "corner",
+   "M": 1,
+   "k": 0,
+   "theory": 0.0625,
+   "measured": 0.0635
+  },
+  {
+   "map": "open room",
+   "case": "corner",
+   "M": 1,
+   "k": 1,
+   "theory": 0.47265625,
+   "measured": 0.46775
+  },
+  {
+   "map": "open room",
+   "case": "corner",
+   "M": 1,
+   "k": 2,
+   "theory": 0.908447265625,
+   "measured": 0.904
+  },
+  {
+   "map": "open room",
+   "case": "corner",
+   "M": 1,
+   "k": 3,
+   "theory": 0.9613189697265625,
+   "measured": 0.96025
+  },
+  {
+   "map": "open room",
+   "case": "corner",
+   "M": 1,
+   "k": 4,
+   "theory": 0.5817041397094724,
+   "measured": 0.5755
+  },
+  {
+   "map": "town",
+   "case": "moves=none",
+   "M": 2,
+   "k": 2,
+   "theory": 0.9453124999999999,
+   "measured": 0.9397500000000001
+  },
+  {
+   "map": "town",
+   "case": "moves=E",
+   "M": 1,
+   "k": 3,
+   "theory": 0.9613189697265625,
+   "measured": 0.9615
+  }
+ ]
+}

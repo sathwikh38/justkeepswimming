@@ -4,8 +4,8 @@ Stage 2 (How do I get home?) as checks.
 import pytest
 from qiskit.quantum_info import Statevector
 
-from localize import DEMO_MAP, best_k, theory_success
-from stage2 import (DEMO_HOME, DEMO_STARTS, N_PLANS, compiled_plan_oracle, decode, encode,
+from quantum.stage1 import DEMO_MAP, best_k, theory_success
+from quantum.stage2 import (DEMO_HOME, DEMO_STARTS, N_PLANS, compiled_plan_oracle, decode, encode,
                     good_plans, plan_search_circuit, plan_works, walk)
 
 
@@ -64,7 +64,7 @@ def test_best_k_for_stage2():
 
 
 # --- M10: the honest Bennett oracle --------------------------------------------
-from stage2 import bennett_plan_oracle
+from quantum.stage2 import bennett_plan_oracle
 
 # Every pair of cells that stage 1 can't tell apart, plus single known starts, to several homes.
 _PAIRS = [(a, b) for a in range(16) for b in range(a + 1, 16) if DEMO_MAP.reading(a) == DEMO_MAP.reading(b)]

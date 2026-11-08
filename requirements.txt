@@ -1,0 +1,6 @@
+qiskit>=2,<3
+qiskit-aer
+qiskit-ibm-runtime
+matplotlib
+numpy
+pytest

@@ -3,7 +3,7 @@ M8: what noise does. Every circuit is transpiled for FakeTorino (IBM Heron, 133 
 native 2-qubit gate CZ) and run on AerSimulator.from_backend(FakeTorino()), which uses
 that device's calibrated gate errors, readout errors and T1/T2.
 
-    python run_noise.py          # ~2-3 min; writes fig6_noise_both_stages.png, results_noise.json
+    python -m experiments.noise     # ~30 s; writes results/fig5_noise_both_stages.png, results/noise.json
 
 Compared:
   stage 1, corner robot (M = 1 of 16):  lookup (honest) vs formula (honest) vs compiled (not honest)
@@ -18,29 +18,13 @@ from qiskit import transpile
 from qiskit_aer import AerSimulator
 from qiskit_ibm_runtime.fake_provider import FakeTorino
 
-from formula_oracle import formula_oracle
-from localize import GridMap, compiled_oracle, diffuser, oracle, theory_success
-from stage2 import DEMO_HOME, DEMO_STARTS, N_PLANS, good_plans, plan_search_circuit
-from localize import DEMO_MAP
-from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
+from experiments import RESULTS
+from quantum.stage1 import DEMO_MAP, GridMap, grover_circuit, theory_success
+from quantum.stage2 import DEMO_HOME, DEMO_STARTS, N_PLANS, good_plans, plan_search_circuit
 
 SHOTS = 4000
 device = FakeTorino()
 noisy = AerSimulator.from_backend(device)
-
-
-def stage1_circuit(make_oracle, gmap, readings, k):
-    """Same as localize.grover_circuit, but with any oracle builder plugged in."""
-    o = make_oracle(gmap, readings)
-    pos = QuantumRegister(4, "pos")
-    regs = [pos] + ([QuantumRegister(o.num_qubits - 4, "walls")] if o.num_qubits > 4 else [])
-    qc = QuantumCircuit(*regs, ClassicalRegister(4, "cell"))
-    qc.h(pos)
-    for _ in range(k):
-        qc.compose(o, qc.qubits, inplace=True)
-        qc.compose(diffuser(4), pos, inplace=True)
-    qc.measure(pos, qc.clbits)
-    return qc
 
 
 def run_noisy(qc, marked):
@@ -57,10 +41,9 @@ results = []      # one row per (series, k)
 room = GridMap()
 rd = room.sense_after(room.index(0, 0), "")
 marked = set(room.candidates(rd, ""))
-for name, make in [("stage 1 lookup", oracle), ("stage 1 formula", formula_oracle),
-                   ("stage 1 compiled", compiled_oracle)]:
+for name in ["stage 1 lookup", "stage 1 formula", "stage 1 compiled"]:
     for k in range(5):
-        p, twoq, depth = run_noisy(stage1_circuit(make, room, rd, k), marked)
+        p, twoq, depth = run_noisy(grover_circuit(room, rd, "", k=k, oracle=name.split()[-1]), marked)
         results.append(dict(series=name, N=16, M=1, k=k, theory=theory_success(16, 1, k),
                             measured=p, two_qubit_gates=twoq, depth=depth))
         print(f"{name:18s} k={k}  theory={theory_success(16, 1, k):.3f}  noisy={p:.3f}  2q={twoq:5d}  depth={depth}")
@@ -73,7 +56,7 @@ for k in range(9):
                         measured=p, two_qubit_gates=twoq, depth=depth))
     print(f"{'stage 2 compiled':18s} k={k}  theory={theory_success(N_PLANS, 1, k):.3f}  noisy={p:.3f}  2q={twoq:5d}  depth={depth}")
 
-with open("results_noise.json", "w") as f:
+with open(RESULTS / "noise.json", "w") as f:
     json.dump(dict(device=device.name, shots=SHOTS, rows=results), f, indent=1)
 
 # --- figure: left = stage 1 three oracles, right = stage 2 ----------------------
@@ -95,4 +78,4 @@ for ax, N, kmax, series in [(a1, 16, 4, ["stage 1 lookup", "stage 1 formula", "s
 a1.set(ylabel="P(success)", title="Stage 1: where am I? (corner, M = 1 of 16)")
 a2.set(title="Stage 2: how do I get home? (M = 1 of 64)")
 fig.suptitle("With FakeTorino noise")
-fig.tight_layout(); fig.savefig("fig6_noise_both_stages.png", dpi=160)
+fig.tight_layout(); fig.savefig(RESULTS / "fig5_noise_both_stages.png", dpi=160)

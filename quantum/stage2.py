@@ -18,7 +18,7 @@ Two oracles, same unitary on the plan register (-1 on good plans):
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 from qiskit.circuit.library import DiagonalGate
 
-from localize import DEMO_MAP, DIRS, GridMap, diffuser
+from quantum.stage1 import DEMO_MAP, DIRS, GridMap, apply_formula, diffuser
 
 N_MOVES = 3
 N_PLAN_QUBITS = 2 * N_MOVES          # 6 qubits -> 64 plans
@@ -87,17 +87,9 @@ def _mcx_on_value(qc, controls, value, target):
 
 def _walk2(qc, gmap, start, plan, pos):
     """pos ^= cell after moves 1 and 2. Self-inverse (only XORs), so calling it again undoes it."""
-    from formula_oracle import best_form
     after2 = [gmap.move(gmap.move(start, DIRS[v & 3]), DIRS[v >> 2]) for v in range(16)]
     for i in range(4):
-        pol, terms = best_form([(x >> i) & 1 for x in after2], 4)
-        neg = [plan[j] for j in range(4) if pol >> j & 1]
-        if neg and terms: qc.x(neg)
-        for t in terms:
-            ctrl = [plan[j] for j in range(4) if t >> j & 1]
-            if not ctrl: qc.x(pos[i])
-            else: qc.mcx(ctrl, pos[i])
-        if neg and terms: qc.x(neg)
+        apply_formula(qc, [(x >> i) & 1 for x in after2], list(plan[:4]), pos[i])
 
 
 def _check_home(qc, gmap, start, plan, pos, flag, home):

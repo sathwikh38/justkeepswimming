@@ -39,7 +39,7 @@ seg("segNoise", (v) => {
 });
 function setFoot() {
   $("foot").textContent = !Q
-    ? "Qiskit data missing: run precompute_ui.py · showing in-browser ideal maths"
+    ? "Qiskit data missing: run python -m experiments.precompute_ui · showing in-browser ideal maths"
     : noisy
       ? `Noisy · Qiskit Aer with ${Q.device} noise · compiled oracle, k ≤ 2 · ${Q.shots} shots`
       : "Ideal · exact Qiskit statevector results";

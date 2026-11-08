@@ -1,7 +1,7 @@
 """
 M10: stage 2 with the honest Bennett oracle vs the compiled one.
 
-    python run_stage2_bennett.py     # writes fig7_stage2_bennett.png, results_stage2_bennett.json
+    python -m experiments.stage2_bennett     # ~15 min; writes results/fig6_*, results/stage2_bennett.json
 
 1. Cost of one oracle call: qubits and two-qubit gates (all-to-all, and on FakeTorino with routing),
    with the honest oracle split into its parts (walk, home check, phase flip).
@@ -18,8 +18,9 @@ from qiskit.quantum_info import Statevector
 from qiskit_aer import AerSimulator
 from qiskit_ibm_runtime.fake_provider import FakeTorino
 
-from localize import DEMO_MAP as G, theory_success
-from stage2 import (DEMO_HOME, DEMO_STARTS, N_PLANS, _check_home, _walk2, bennett_plan_oracle,
+from experiments import RESULTS
+from quantum.stage1 import DEMO_MAP as G, theory_success
+from quantum.stage2 import (DEMO_HOME, DEMO_STARTS, N_PLANS, _check_home, _walk2, bennett_plan_oracle,
                     compiled_plan_oracle, good_plans, plan_search_circuit)
 
 SHOTS = 2000
@@ -73,7 +74,7 @@ for honest in (False, True):
                          theory=theory_success(N_PLANS, M, k)))
         print(f"noisy {'bennett ' if honest else 'compiled'} k={k}  P={p:.3f}  2q={twoq}", flush=True)
 
-json.dump(dict(cost=cost_rows, noiseless_honest=ideal, noisy=rows), open("results_stage2_bennett.json", "w"), indent=1)
+json.dump(dict(cost=cost_rows, noiseless_honest=ideal, noisy=rows), open(RESULTS / "stage2_bennett.json", "w"), indent=1)
 
 fig, ax = plt.subplots(figsize=(7, 4.2))
 kk = [i / 20 for i in range(161)]
@@ -87,4 +88,4 @@ for name, col in [("compiled", "#c0392b"), ("bennett", "#7d3c98")]:
 ax.set(xlabel="Grover iterations k", ylabel="P(plan works from both starts)", ylim=(0, 1.05),
        title="Stage 2: honest Bennett oracle vs compiled")
 ax.legend(frameon=False, fontsize=8)
-fig.tight_layout(); fig.savefig("fig7_stage2_bennett.png", dpi=160)
+fig.tight_layout(); fig.savefig(RESULTS / "fig6_stage2_bennett.png", dpi=160)

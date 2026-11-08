@@ -1,0 +1,132 @@
+{
+ "shots": 4000,
+ "top_plan": "ENN",
+ "rows": [
+  {
+   "case": "demo",
+   "M": 1,
+   "k": 0,
+   "theory": 0.015625,
+   "measured": 0.0185
+  },
+  {
+   "case": "demo",
+   "M": 1,
+   "k": 1,
+   "theory": 0.13482666015625,
+   "measured": 0.12875
+  },
+  {
+   "case": "demo",
+   "M": 1,
+   "k": 2,
+   "theory": 0.34389519691467285,
+   "measured": 0.341
+  },
+  {
+   "case": "demo",
+   "M": 1,
+   "k": 3,
+   "theory": 0.5913801500573754,
+   "measured": 0.592
+  },
+  {
+   "case": "demo",
+   "M": 1,
+   "k": 4,
+   "theory": 0.8163770193968958,
+   "measured": 0.821
+  },
+  {
+   "case": "demo",
+   "M": 1,
+   "k": 5,
+   "theory": 0.9635154816192113,
+   "measured": 0.969
+  },
+  {
+   "case": "demo",
+   "M": 1,
+   "k": 6,
+   "theory": 0.9965856807867991,
+   "measured": 0.99575
+  },
+  {
+   "case": "demo",
+   "M": 1,
+   "k": 7,
+   "theory": 0.9074492475732605,
+   "measured": 0.9145
+  },
+  {
+   "case": "demo",
+   "M": 1,
+   "k": 8,
+   "theory": 0.7180421010897398,
+   "measured": 0.7205
+  },
+  {
+   "case": "second",
+   "M": 2,
+   "k": 0,
+   "theory": 0.03125000000000001,
+   "measured": 0.02925
+  },
+  {
+   "case": "second",
+   "M": 2,
+   "k": 1,
+   "theory": 0.2583007812500001,
+   "measured": 0.25675
+  },
+  {
+   "case": "second",
+   "M": 2,
+   "k": 2,
+   "theory": 0.6024246215820311,
+   "measured": 0.6105
+  },
+  {
+   "case": "second",
+   "M": 2,
+   "k": 3,
+   "theory": 0.8969365358352662,
+   "measured": 0.9015
+  },
+  {
+   "case": "second",
+   "M": 2,
+   "k": 4,
+   "theory": 0.9991823155432941,
+   "measured": 0.999
+  },
+  {
+   "case": "second",
+   "M": 2,
+   "k": 5,
+   "theory": 0.8596366611600388,
+   "measured": 0.86825
+  },
+  {
+   "case": "second",
+   "M": 2,
+   "k": 6,
+   "theory": 0.5458919990273896,
+   "measured": 0.546
+  },
+  {
+   "case": "second",
+   "M": 2,
+   "k": 7,
+   "theory": 0.20991839986584881,
+   "measured": 0.2095
+  },
+  {
+   "case": "second",
+   "M": 2,
+   "k": 8,
+   "theory": 0.014453075769287428,
+   "measured": 0.0145
+  }
+ ]
+}

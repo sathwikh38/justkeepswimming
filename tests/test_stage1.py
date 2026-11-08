@@ -3,15 +3,13 @@ Stage 1 (Where am I?) as checks. Read each test as a claim you can make to a jud
 
 Run:  .venv/bin/python -m pytest -v
 """
-import math
 
 import pytest
 from qiskit import transpile
 from qiskit.quantum_info import Statevector
 
-from formula_oracle import formula_oracle
-from localize import (DEMO_MAP, GridMap, best_k, compiled_oracle, grover_circuit,
-                      oracle, theory_success)
+from quantum.stage1 import (DEMO_MAP, GridMap, best_k, compiled_oracle, formula_oracle,
+                            grover_circuit, lookup_oracle, theory_success)
 
 ROOM = GridMap()
 
@@ -63,14 +61,14 @@ def test_lookup_oracle_marks_exactly_the_candidates(gmap):
     for x in range(16):
         rd = gmap.sense_after(x, "")
         marked = set(gmap.candidates(rd, ""))
-        phases = oracle_action(oracle(gmap, rd))
+        phases = oracle_action(lookup_oracle(gmap, rd))
         assert [i for i, p in enumerate(phases) if p == -1] == sorted(marked)
 
 
 def test_oracle_with_a_move_needs_both_readings():
     start = DEMO_MAP.index(1, 0)
     rd = DEMO_MAP.sense_after(start, "E")                 # 2 readings -> 8 ancillas
-    phases = oracle_action(oracle(DEMO_MAP, rd, "E"))
+    phases = oracle_action(lookup_oracle(DEMO_MAP, rd, "E"))
     assert [i for i, p in enumerate(phases) if p == -1] == [start]
 
 
@@ -88,7 +86,7 @@ def test_grover_matches_theory(cell, k):
     x = ROOM.index(*cell)
     rd = ROOM.sense_after(x, "")
     marked = ROOM.candidates(rd, "")
-    qc = grover_circuit(ROOM, rd, "", k=k).remove_final_measurements(inplace=False)
+    qc = grover_circuit(ROOM, rd, "", k=k, measure=False)
     p = Statevector(qc).probabilities(qargs=range(4))     # marginal over the position register
     assert abs(sum(p[m] for m in marked) - theory_success(16, len(marked), k)) < 1e-9
 
@@ -98,7 +96,7 @@ def test_grover_matches_theory(cell, k):
 def test_formula_oracle_equals_lookup(gmap):
     for x in range(16):
         rd = gmap.sense_after(x, "")
-        assert oracle_action(formula_oracle(gmap, rd)) == oracle_action(oracle(gmap, rd))
+        assert oracle_action(formula_oracle(gmap, rd)) == oracle_action(lookup_oracle(gmap, rd))
 
 
 def cx_count(qc):
@@ -107,6 +105,6 @@ def cx_count(qc):
 
 def test_gate_cost_ordering():
     rd = ROOM.sense_after(ROOM.index(0, 0), "")
-    lookup, formula, compiled = (cx_count(f(ROOM, rd)) for f in (oracle, formula_oracle, compiled_oracle))
+    lookup, formula, compiled = (cx_count(f(ROOM, rd)) for f in (lookup_oracle, formula_oracle, compiled_oracle))
     print(f"\n  CX per oracle call  lookup={lookup}  formula={formula}  compiled={compiled}")
     assert lookup > formula > compiled
