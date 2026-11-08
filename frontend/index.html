@@ -20,7 +20,7 @@
             <button data-v="indoor" class="on">Indoor</button><button data-v="outdoor">Outdoor</button>
           </div>
           <div class="seg" id="segView">
-            <button data-v="2d" class="on">2D map</button><button data-v="3d">3D view</button>
+            <button data-v="2d" class="on">2D map</button><button data-v="3d">3D view</button><button data-v="pov">POV</button>
           </div>
           <div class="seg" id="segNoise">
             <button data-v="ideal" class="on">Ideal</button><button data-v="noisy">Noisy</button>
@@ -41,14 +41,15 @@
               aria-label="Map with walls, robot and probability overlay"
             ></svg>
             <div id="three"><div class="hint3d">drag Robo · right-click sets home · drag empty space to orbit</div></div>
-            <div class="cc" id="cc" aria-live="polite"></div>
+            <div class="minimap" id="minimap" hidden></div>
           </div>
+          <div class="cc" id="cc" aria-live="polite"></div>
           <div class="runbar" id="runbar">
             <div class="seg mini" id="segRun"><button data-v="auto" class="on">Auto</button><button data-v="step">Step</button></div>
             <button class="ghostbtn" id="nextBtn" disabled>Next step →</button>
             <span class="grow"></span>
             <button class="ghostbtn" id="compareBtn" hidden>Quantum vs classical</button>
-            <button class="ghostbtn" id="restartBtn">↺ Restart</button>
+            <button class="btn alt small" id="restartBtn">↺ Restart</button>
           </div>
           <div class="box" id="chartbox">
             <div class="chead"><span class="ctitle">Grover's search · amplitude of every possibility</span><span class="cround" id="cround"></span></div>

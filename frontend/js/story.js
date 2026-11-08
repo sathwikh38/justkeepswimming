@@ -62,7 +62,7 @@ function reset() {
   RUN.token++;
   wake();
   seed = 7;
-  Object.assign(S, { glow: false, probs: null, amps: null, ampMarked: null, ghosts: [], trail: [], paths: [], cls: {}, busy: false });
+  Object.assign(S, { heading: 0, bump: null, spin: null, glow: false, probs: null, amps: null, ampMarked: null, ghosts: [], trail: [], paths: [], cls: {}, busy: false });
   hist = [];
   rds = [];
   S.sup = null;
@@ -82,13 +82,26 @@ function reset() {
   setStats(null);
   setupView();
 }
+// Replay the same mission from where Robo started, or drop it somewhere new and go.
+function runAgain() {
+  const s = START;
+  reset();
+  S.pos = s;
+  render2D();
+  start();
+}
+function randomRun() {
+  reset();
+  randomDrop();
+  start();
+}
+const face4 = (d) => (DIRS.indexOf(d) * Math.PI) / 2; // POV heading for a move direction
 function randomDrop() {
   let x;
   do x = Math.floor(Math.random() * 16);
   while (x === HOME);
   S.pos = x;
   render2D();
-  if (view === "3d") update3D();
   setupView();
 }
 
@@ -240,7 +253,7 @@ async function scan() {
   const rd = reading(S.pos);
   rds.push(rd);
   caption("Scanning walls…");
-  if (view === "3d") await rays3D(S.pos);
+  if (view !== "2d") await rays3D(S.pos);
   say("think", "Stage 1 · <b>Where am I?</b>", [], readingHTML(rd));
   log(`scan ${rds.length} · walls <b>${DIRS.split("").filter((d, i) => rd[i]).join(" ") || "none"}</b>`);
   await beat(`I feel <b>${wallText(rd)}</b>. Which squares feel like this${rds.length > 1 ? " after that move" : ""}?`, 1600);
@@ -295,10 +308,11 @@ async function relocate(d) {
   S.ghosts = [];
   const b = S.pos,
     n = move(S.pos, d);
+  S.heading = face4(d);
   if (n !== b) {
     S.trail.push([b, n]);
     S.pos = n;
-  }
+  } else S.bump = { d, t0: performance.now() };
   render2D();
   hist.push(d);
   log(`moved ${NAMES[d]} · rescan`);
@@ -383,10 +397,11 @@ async function walkLeg({ best, goal }) {
     S.ghosts = S.ghosts.map((x) => move(x, d));
     const n = move(S.pos, d),
       stuck = n === S.pos;
+    S.heading = face4(d);
     if (!stuck) {
       S.trail.push([S.pos, n]);
       S.pos = n;
-    }
+    } else S.bump = { d, t0: performance.now() };
     render2D();
     log(`walk ${d}${stuck ? " · wall" : ""}`);
     await beat(`Walking: step ${j + 1} of ${best.length}, ${NAMES[d]}`, 950);
@@ -419,7 +434,8 @@ async function walkLeg({ best, goal }) {
 function finish(ok, title) {
   caption(ok ? `${title}.` : `${title}.`);
   say(ok ? "home" : "lost", `<b>${title}.</b>`, [
-    ["Run again", reset],
+    ["Run again", runAgain],
+    ["New random spot", randomRun, "alt"],
     ["Quantum vs classical", () => showSummary(title), "alt"],
   ]);
   $("compareBtn").hidden = false;

@@ -10,6 +10,13 @@ function init3D() {
   scene.background = new THREE.Color(0xf7f7f5);
   const cam = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
   cam.position.set(3.6, 5.2, 5.6);
+  cam.layers.enable(1);
+  const povCam = new THREE.PerspectiveCamera(78, 1, 0.02, 50); // Robo's eyes (layer 0 only)
+  const topCam = new THREE.OrthographicCamera(-2.15, 2.15, 2.15, -2.15, 0.1, 30); // minimap, north up
+  topCam.position.set(0, 10, 0);
+  topCam.up.set(0, 0, -1);
+  topCam.lookAt(0, 0, 0);
+  topCam.layers.enable(1);
   const ctl = new THREE.OrbitControls(cam, ren.domElement);
   ctl.target.set(0, 0, 0);
   ctl.enableDamping = true;
@@ -30,7 +37,7 @@ function init3D() {
     return p && r >= 0 && r < 4 && c >= 0 && c < 4 ? idx(r, c) : -1;
   };
   ren.domElement.addEventListener("pointerdown", (ev) => {
-    if (stage !== "setup" || S.busy || ev.button !== 0) return;
+    if (view !== "3d" || stage !== "setup" || S.busy || ev.button !== 0) return;
     const p = floorAt(ev),
       [X, Z] = P3(S.pos);
     if (!p || Math.hypot(p.x - X, p.z - Z) > 0.4) return; // not on Robo: let OrbitControls orbit
@@ -42,6 +49,7 @@ function init3D() {
   ren.domElement.addEventListener("pointermove", (ev) => {
     const p = floorAt(ev);
     if (!R3.drag) {
+      if (view !== "3d") return;
       const [X, Z] = P3(S.pos);
       ren.domElement.style.cursor = stage === "setup" && p && Math.hypot(p.x - X, p.z - Z) < 0.4 ? "grab" : "";
       return;
@@ -60,7 +68,7 @@ function init3D() {
   });
   ren.domElement.addEventListener("contextmenu", (ev) => {
     ev.preventDefault();
-    if (stage !== "setup" || S.busy) return;
+    if (view !== "3d" || stage !== "setup" || S.busy) return;
     const p = floorAt(ev);
     if (p) homeAt(cellOf(p));
     setupView();
@@ -69,7 +77,7 @@ function init3D() {
   const dl = new THREE.DirectionalLight(0xffffff, 0.6);
   dl.position.set(4, 8, 3);
   scene.add(dl);
-  R3 = { ren, scene, cam, ctl, world: new THREE.Group(), dyn: new THREE.Group(), rays: new THREE.Group() };
+  R3 = { ren, scene, cam, ctl, povCam, topCam, pv: null, world: new THREE.Group(), dyn: new THREE.Group(), rays: new THREE.Group() };
   scene.add(R3.world, R3.dyn, R3.rays);
   const loop = () => {
     const w = box.clientWidth;
@@ -78,8 +86,22 @@ function init3D() {
       cam.aspect = 1;
       cam.updateProjectionMatrix();
     }
-    ctl.update();
-    ren.render(scene, cam);
+    if (view === "pov") {
+      updatePov();
+      ren.setScissorTest(false);
+      ren.setViewport(0, 0, w, w);
+      ren.render(scene, povCam);
+      const m = Math.round(w * 0.3); // minimap in the top-right corner (y counts from the bottom)
+      ren.setScissorTest(true);
+      ren.setScissor(w - m - 10, w - m - 10, m, m);
+      ren.setViewport(w - m - 10, w - m - 10, m, m);
+      ren.render(scene, topCam);
+      ren.setScissorTest(false);
+    } else {
+      ren.setViewport(0, 0, w, w);
+      ctl.update();
+      ren.render(scene, cam);
+    }
     requestAnimationFrame(loop);
   };
   loop();
@@ -96,7 +118,7 @@ function build3D() {
   const out = world === "outdoor";
   const floor = new THREE.Mesh(
     new THREE.BoxGeometry(4, 0.04, 4),
-    new THREE.MeshLambertMaterial({ color: out ? 0xe6ecdb : 0xffffff, transparent: true, opacity: 0.8 }),
+    new THREE.MeshLambertMaterial({ color: out ? 0xe6ecdb : 0xdcebf5, transparent: true, opacity: 0.85 }), // flooded floor
   );
   floor.position.y = -0.02;
   W.add(floor);
@@ -181,6 +203,8 @@ function update3D() {
     const r = robotMesh(false);
     const [X, Z] = P3(S.pos);
     r.position.set(X, 0, Z);
+    r.rotation.y = -(S.heading || 0); // nose points the way Robo faces
+    r.traverse((o) => o.layers.set(1));
     D.add(r);
     R3.robot = r;
   }
@@ -202,10 +226,13 @@ function update3D() {
       D.add(m);
     }
   });
+  // copies on Robo's own square would sit inside the POV camera: show them on the minimap/3D only
+  const ownSquare = (g, x) => x === S.pos && g.traverse((o) => o.layers.set(1));
   S.ghosts.forEach((x) => {
     const g = robotMesh(true, 0.35);
     const [X, Z] = P3(x);
     g.position.set(X, 0, Z);
+    ownSquare(g, x);
     D.add(g);
   });
   if (S.amps && S.amps.length === 16) {
@@ -215,6 +242,7 @@ function update3D() {
       if (p > 0.004) {
         const g = robotMesh(true, Math.min(0.8, 0.08 + p * 1.6));
         g.position.set(X, 0, Z);
+        ownSquare(g, x);
         D.add(g);
       }
       const h = Math.max(0.004, Math.abs(a) * 2.2);
@@ -227,8 +255,44 @@ function update3D() {
     });
   }
 }
+// POV: glide the eye camera toward Robo's cell and heading; spin during scans, nudge on wall bumps.
+const DIRV = (h) => [Math.sin(h), -Math.cos(h)]; // heading 0 = north (-z), pi/2 = east (+x)
+function updatePov() {
+  const { povCam } = R3,
+    [tx, tz] = P3(S.pos),
+    now = performance.now();
+  if (!R3.pv) R3.pv = { x: tx, z: tz, h: S.heading || 0 };
+  const pv = R3.pv;
+  pv.x += (tx - pv.x) * 0.1;
+  pv.z += (tz - pv.z) * 0.1;
+  let dh = (S.heading || 0) - pv.h;
+  dh = Math.atan2(Math.sin(dh), Math.cos(dh)); // shortest turn
+  pv.h += dh * 0.12;
+  let h = pv.h;
+  if (S.spin) {
+    const u = (now - S.spin.t0) / S.spin.dur;
+    if (u >= 1) S.spin = null;
+    else h += 2 * Math.PI * (u < 0.5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2);
+  }
+  let bx = 0,
+    bz = 0;
+  if (S.bump) {
+    const u = (now - S.bump.t0) / 380;
+    if (u >= 1) S.bump = null;
+    else {
+      const [dr, dc] = STEP[S.bump.d],
+        a = Math.sin(u * Math.PI) * 0.22;
+      bx = dc * a;
+      bz = dr * a;
+    }
+  }
+  const [dx, dz] = DIRV(h);
+  povCam.position.set(pv.x - dx * 0.12 + bx, 0.34, pv.z - dz * 0.12 + bz);
+  povCam.lookAt(pv.x + dx + bx, 0.24, pv.z + dz + bz);
+}
 async function rays3D(x) {
   if (!R3) return;
+  if (view === "pov") S.spin = { t0: performance.now(), dur: 1400 }; // look all four ways while scanning
   const G = R3.rays;
   while (G.children.length) G.remove(G.children[0]);
   const [X, Z] = P3(x);

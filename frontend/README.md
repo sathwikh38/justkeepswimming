@@ -17,10 +17,13 @@ Opening `index.html` directly also works. Fonts and the 3D view load from CDNs (
 
 - **Drag** Robo to drop it anywhere (2D or 3D); **right-click** a square to set home.
 - Press **Start mission**: Robo scans, runs Grover, decides whether to rescan or plan, draws the route
-  from every place it might be, and walks it, narrating each step in the caption bar over the map.
+  from every place it might be, and walks it, narrating each step in the caption strip below the map.
+  When it finishes: **Run again** (same start), **New random spot**, or **Quantum vs classical**.
 - Under the map: **Auto / Step** (Step pauses at every beat; press **Next step**), **Restart**, and
   **Quantum vs classical** (the summary pop-up, also shown when the mission ends).
-- Top bar: indoor / outdoor map, 2D / 3D view, **Ideal / Noisy**, and **Stats** (classical checks vs quantum
+- **POV** view: Robo's own eyes. The camera spins to look all four ways while scanning, nudges
+  forward when a wall blocks a move, and follows the route; a minimap in the corner keeps you oriented.
+- Top bar: indoor / outdoor map, 2D / 3D / POV view, **Ideal / Noisy**, and **Stats** (classical checks vs quantum
   calls, qubits and gate costs per search, in a separate panel).
 
 ## Files
@@ -31,7 +34,7 @@ Plain scripts loaded in order (they share globals):
 |---|---|
 | `js/world.js` | Map walls, rooms, themes, move/sense rules, candidates, plans, Grover maths (`bestK`, `theory`), shared state `S`, `tween` |
 | `js/map2d.js` | 2D floor plan / topo map rendering: walls, doors, labels, heat map, superposition ghosts, trail, home marker, robot |
-| `js/view3d.js` | three.js scene: walls, robot, sensing rays, amplitude columns, ghost robots |
+| `js/view3d.js` | three.js scene: walls, robot, sensing rays, amplitude columns, ghost robots, routes, 3D drag, POV camera + minimap |
 | `js/search.js` | Amplitude chart, animated Grover loop with the Superposition → Oracle → Diffuser → Measure stepper |
 | `js/panel.js` | Robo's face, caption bar, stage cards, stats panel, quantum-vs-classical pop-up |
 | `js/story.js` | Autopilot mission (Auto / Step pacing): setup, scan, locate, decide, plan legs, draw routes, walk |

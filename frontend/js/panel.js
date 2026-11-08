@@ -63,8 +63,8 @@ function say(mood, html, buttons = [], extra = "") {
 /* closed-caption line over the map: what Robo is doing right now */
 function caption(html) {
   const c = $("cc");
-  c.innerHTML = html || "";
-  c.classList.toggle("on", !!html);
+  c.innerHTML = `<span>${html || "Robo is waiting. Drop it somewhere, then press <b>Start mission</b>."}</span>`;
+  c.classList.toggle("idle", !html);
 }
 function setStats(N, M, k) {
   $("stats").innerHTML =
@@ -154,6 +154,6 @@ function showSummary(outcome) {
   $("mClose").onclick = () => ($("overlay").hidden = true);
   $("mAgain").onclick = () => {
     $("overlay").hidden = true;
-    reset();
+    runAgain();
   };
 }
