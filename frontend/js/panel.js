@@ -60,10 +60,10 @@ function say(mood, html, buttons = [], extra = "") {
     b.appendChild(x);
   });
 }
-/* closed-caption line over the map: what Robo is doing right now */
+/* closed-caption line over the map: what Dory is doing right now */
 function caption(html) {
   const c = $("cc");
-  c.innerHTML = `<span>${html || "Robo is waiting. Drop it somewhere, then press <b>Start mission</b>."}</span>`;
+  c.innerHTML = `<span>${html || "Dory is waiting. Drop it somewhere, then press <b>Start mission</b>."}</span>`;
   c.classList.toggle("idle", !html);
 }
 function setStats(N, M, k) {
@@ -119,7 +119,7 @@ function renderStats() {
   const box = $("statsbox");
   box.hidden = !$("showStats").checked;
   if (!TALLY.length) {
-    box.innerHTML = `<h4>STATS</h4><div class="optnote">Stats appear here as Robo searches.</div>`;
+    box.innerHTML = `<h4>STATS</h4><div class="optnote">Stats appear here as Dory searches.</div>`;
     return;
   }
   box.innerHTML =

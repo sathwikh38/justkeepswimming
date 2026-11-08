@@ -140,29 +140,12 @@ const phase = (h) => ($("phase").innerHTML = h);
 const lerp = (a, b, u) => a.map((v, i) => v + (b[i] - v) * u);
 
 const STEPS = ["sup", "oracle", "diff", "meas"];
-// What each step means for Robo, in plain words (stage 1 searches squares, stage 2 searches routes).
-function explain(N) {
-  const sq = N === 16;
-  const rows = {
-    sup: sq
-      ? `Robo doesn't know where it is, so it holds <b>all 16 squares at once</b>, each equally likely.`
-      : `Robo holds <b>all 64 three-move routes at once</b>, each equally likely.`,
-    oracle: sq
-      ? `Knows the map and what Robo just felt. It <b>flips the sign</b> of every square that feels the same, marking the matches without revealing them.`
-      : `Walks each route from every place Robo might be and <b>flips the sign</b> of the routes that end at home from all of them.`,
-    diff: `Mirrors every bar across the average. The flipped ${sq ? "squares" : "routes"} <b>grow</b>, the rest shrink. A few rounds of oracle + diffuser make the answer stand out.`,
-    meas: `Robo looks once and gets one ${sq ? "square" : "route"}, very likely ${sq ? "a match" : "one that works"}.`,
-  };
-  const names = { sup: "Superposition", oracle: "Oracle", diff: "Diffuser", meas: "Measure" };
-  $("explain").innerHTML = STEPS.map((s) => `<div data-s="${s}"><span>${names[s]}</span><p>${rows[s]}</p></div>`).join("");
-}
 function setStep(step, r, k) {
   const i = STEPS.indexOf(step);
   document.querySelectorAll("#steps span").forEach((e, j) => {
     e.classList.toggle("on", j === i);
     e.classList.toggle("done", i >= 0 && j < i);
   });
-  document.querySelectorAll("#explain > div").forEach((e, j) => e.classList.toggle("on", j === i));
   $("cround").textContent = k ? `round ${Math.max(r, 0)} of ${k}` : "";
 }
 
@@ -182,7 +165,6 @@ async function grover(N, marked, k, toMap) {
     render2D();
   };
   const dc = (arr, o = {}) => drawChart(arr, marked, { ...o, names: toMap.names });
-  explain(N);
   dc(a);
   show(a);
   setStats(N, M, 0);

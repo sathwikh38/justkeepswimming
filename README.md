@@ -53,10 +53,10 @@ python -m http.server 8000 --directory frontend    # demo at http://localhost:80
 
 ## The demo
 
-Drag Robo anywhere (2D or 3D) and right-click a square to set home, then press **Start mission**:
-Robo scans, runs Grover, decides whether to rescan or plan, draws its route from every place it
+Drag Dory anywhere (2D or 3D) and right-click a square to set home, then press **Start mission**:
+Dory scans, runs Grover, decides whether to rescan or plan, draws its route from every place it
 might be, and walks home, narrating each step in the caption strip. **Auto / Step** under the map
-pauses at every step; **POV** shows the mission through Robo's eyes; **Ideal / Noisy** switches
+pauses at every step; **POV** shows the mission through Dory's eyes; **Ideal / Noisy** switches
 between exact statevector results and FakeTorino-noise results; **Stats** and the end-of-mission
 pop-up compare classical checks with quantum oracle calls.
 

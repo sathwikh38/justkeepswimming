@@ -56,10 +56,10 @@ function setFoot() {
 function setHowto() {
   $("howto").textContent =
     view === "pov"
-      ? "You're seeing through Robo's eyes. Switch to 2D or 3D to move Robo or set home."
+      ? "You're seeing through Dory's eyes. Switch to 2D or 3D to move Dory or set home."
       : view === "3d"
-        ? "Drag Robo anywhere, right-click a square to set home, drag empty space to rotate."
-        : "Drag Robo anywhere, right-click a square to set home.";
+        ? "Drag Dory anywhere, right-click a square to set home, drag empty space to rotate."
+        : "Drag Dory anywhere, right-click a square to set home.";
 }
 setFoot();
 setHowto();

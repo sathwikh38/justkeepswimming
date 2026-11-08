@@ -11,7 +11,7 @@ function init3D() {
   const cam = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
   cam.position.set(3.6, 5.2, 5.6);
   cam.layers.enable(1);
-  const povCam = new THREE.PerspectiveCamera(78, 1, 0.02, 50); // Robo's eyes (layer 0 only)
+  const povCam = new THREE.PerspectiveCamera(78, 1, 0.02, 50); // Dory's eyes (layer 0 only)
   const topCam = new THREE.OrthographicCamera(-2.15, 2.15, 2.15, -2.15, 0.1, 30); // minimap, north up
   topCam.position.set(0, 10, 0);
   topCam.up.set(0, 0, -1);
@@ -22,7 +22,7 @@ function init3D() {
   ctl.enableDamping = true;
   ctl.maxPolarAngle = Math.PI * 0.49;
   ctl.enablePan = false; // right-click sets home instead
-  // drag Robo / right-click home, by projecting the pointer onto the floor (y = 0)
+  // drag Dory / right-click home, by projecting the pointer onto the floor (y = 0)
   const ray = new THREE.Raycaster(),
     floorPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
   const floorAt = (ev) => {
@@ -40,7 +40,7 @@ function init3D() {
     if (view !== "3d" || stage !== "setup" || S.busy || ev.button !== 0) return;
     const p = floorAt(ev),
       [X, Z] = P3(S.pos);
-    if (!p || Math.hypot(p.x - X, p.z - Z) > 0.4) return; // not on Robo: let OrbitControls orbit
+    if (!p || Math.hypot(p.x - X, p.z - Z) > 0.4) return; // not on Dory: let OrbitControls orbit
     ctl.enabled = false;
     R3.drag = true;
     ren.domElement.setPointerCapture(ev.pointerId);
@@ -203,7 +203,7 @@ function update3D() {
     const r = robotMesh(false);
     const [X, Z] = P3(S.pos);
     r.position.set(X, 0, Z);
-    r.rotation.y = -(S.heading || 0); // nose points the way Robo faces
+    r.rotation.y = -(S.heading || 0); // nose points the way Dory faces
     r.traverse((o) => o.layers.set(1));
     D.add(r);
     R3.robot = r;
@@ -226,7 +226,7 @@ function update3D() {
       D.add(m);
     }
   });
-  // copies on Robo's own square would sit inside the POV camera: show them on the minimap/3D only
+  // copies on Dory's own square would sit inside the POV camera: show them on the minimap/3D only
   const ownSquare = (g, x) => x === S.pos && g.traverse((o) => o.layers.set(1));
   S.ghosts.forEach((x) => {
     const g = robotMesh(true, 0.35);
@@ -255,7 +255,7 @@ function update3D() {
     });
   }
 }
-// POV: glide the eye camera toward Robo's cell and heading; spin during scans, nudge on wall bumps.
+// POV: glide the eye camera toward Dory's cell and heading; spin during scans, nudge on wall bumps.
 const DIRV = (h) => [Math.sin(h), -Math.cos(h)]; // heading 0 = north (-z), pi/2 = east (+x)
 function updatePov() {
   const { povCam } = R3,

@@ -133,6 +133,10 @@ function drawMap() {
       fill: "none",
     });
   }
+  for (let x = 0; x < 16; x++) {
+    const [r, c] = rc(x);
+    txt(svg, O + c * T + 8, O + r * T + 18, gridName(x), { "font-size": 12, "font-weight": 600, "font-family": MONO, fill: "#5b6570" });
+  }
   L.heat = el("g");
   L.cls = el("g");
   // home marker

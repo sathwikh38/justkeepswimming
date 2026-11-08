@@ -585,10 +585,3 @@ button {
 }
 .howto::before { content: "HOW TO"; flex: none; font: 600 10.5px "IBM Plex Mono", monospace; letter-spacing: 0.08em;
   color: #fff; background: var(--accent); border-radius: 3px; padding: 3px 6px; }
-.explain { display: flex; flex-direction: column; gap: 2px; margin: 6px 0 4px; }
-.explain > div { display: flex; gap: 10px; align-items: baseline; padding: 3px 8px; border-radius: 4px; transition: background 0.2s; }
-.explain span { flex: none; width: 92px; font: 600 11px "IBM Plex Mono", monospace; color: #8b959e; }
-.explain p { margin: 0; font-size: 12.5px; line-height: 1.35; color: var(--muted); }
-.explain > div.on { background: #fdf0e8; }
-.explain > div.on span { color: var(--accent); }
-.explain > div.on p { color: var(--ink); }

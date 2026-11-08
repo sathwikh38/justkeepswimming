@@ -1,4 +1,4 @@
-/* ---------------- run control: Robo drives itself; Step mode pauses at every beat ---------------- */
+/* ---------------- run control: Dory drives itself; Step mode pauses at every beat ---------------- */
 const RUN = { mode: "auto", wake: null, token: 0 };
 class Abort extends Error {}
 async function beat(text, ms = 1200) {
@@ -77,13 +77,12 @@ function reset() {
   build3D();
   $("stages").innerHTML = "";
   drawChart(Array(16).fill(1 / 4), new Set());
-  explain(16);
   setStep(null);
   phase("One bar per possibility. Height = amplitude; probability = height².");
   setStats(null);
   setupView();
 }
-// Replay the same mission from where Robo started, or drop it somewhere new and go.
+// Replay the same mission from where Dory started, or drop it somewhere new and go.
 function runAgain() {
   const s = START;
   reset();
@@ -106,7 +105,7 @@ function randomDrop() {
   setupView();
 }
 
-/* ---------------- setup: drag Robo, right-click home (2D) ---------------- */
+/* ---------------- setup: drag Dory, right-click home (2D) ---------------- */
 const svgPt = (ev) => {
   const pt = svg.createSVGPoint();
   pt.x = ev.clientX;
@@ -236,7 +235,7 @@ async function mission() {
     break;
   }
   stageSave(cur.length === 1 ? `I'm in <b>${cellName(cur[0])}</b>` : `${cur.length} lookalikes: <b>${cur.map(gridName).join(", ")}</b>`);
-  if (cur.length === 1 && cur[0] === HOME) return finish(true, "Robo was already home");
+  if (cur.length === 1 && cur[0] === HOME) return finish(true, "Dory was already home");
   // ---- stage 2: how do I get home? (one or more 3-move legs) ----
   for (;;) {
     const leg = await planLeg(cur);
@@ -245,7 +244,7 @@ async function mission() {
       return finish(false, "No route found");
     }
     if (!(await walkLeg(leg))) return finish(false, "Noise picked a bad route");
-    if (leg.goal === HOME) return finish(true, `Robo reached ${goalName()}`);
+    if (leg.goal === HOME) return finish(true, `Dory reached ${goalName()}`);
     cur = [S.pos];
   }
 }
