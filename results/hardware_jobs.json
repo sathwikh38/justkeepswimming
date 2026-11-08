@@ -1,8 +1,20 @@
 {
- "backend": "ibm_fez",
- "submitted": "2026-11-08T06:10:05+00:00",
- "job_ids": {
-  "plain": "dbo14f0ou4as73b5atrg",
-  "suppressed": "dbo14f8qtr0c73adqjkg"
- }
+ "runs": [
+  {
+   "backend": "ibm_fez",
+   "submitted": "2026-11-08T06:10:05+00:00",
+   "job_ids": {
+    "plain": "dbo14f0ou4as73b5atrg",
+    "suppressed": "dbo14f8qtr0c73adqjkg"
+   }
+  },
+  {
+   "backend": "ibm_kingston",
+   "submitted": "2026-11-08T06:38:40+00:00",
+   "job_ids": {
+    "plain": "dbo1hroqtr0c73adrhb0",
+    "suppressed": "dbo1hs0qtr0c73adrhbg"
+   }
+  }
+ ]
 }

@@ -2,8 +2,8 @@
 Run the project's Grover searches on a real IBM quantum computer (free Open Plan), once.
 
     python -m experiments.ibm_hardware rehearse      # whole pipeline locally on FakeTorino (no account)
-    python -m experiments.ibm_hardware submit        # transpile + submit to the least-busy real backend
-    python -m experiments.ibm_hardware fetch         # wait for the jobs, analyse, write results + figures
+    python -m experiments.ibm_hardware submit [name] # transpile + submit (least-busy backend, or the one named)
+    python -m experiments.ibm_hardware fetch         # race the submitted backends, cancel the losers, analyse
 
 Needs a saved IBM Quantum account (QiskitRuntimeService.save_account(...)) for submit/fetch.
 
@@ -217,42 +217,74 @@ def rehearse():
     figures(res, prefix="rehearsal_")
 
 
-def submit():
+def _runs():
+    """All submitted runs (one per backend). Older single-run files are upgraded on the fly."""
+    if not JOBS_FILE.exists():
+        return []
+    j = json.load(open(JOBS_FILE))
+    return j["runs"] if "runs" in j else [j]
+
+
+def submit(backend_name=None):
+    """Submit the full experiment to one backend (the least busy if none is named); several
+    submissions to different backends race, and fetch keeps whichever starts first."""
     from qiskit_ibm_runtime import QiskitRuntimeService
     service = QiskitRuntimeService()
-    backend = service.least_busy(operational=True, simulator=False, min_num_qubits=20)
+    backend = (service.backend(backend_name) if backend_name
+               else service.least_busy(operational=True, simulator=False, min_num_qubits=20))
     E = transpile_all(experiments(), backend)
     print(f"backend {backend.name}: {len(E)} circuits + {sum(map(SUPPRESSED, E))} suppressed reruns, {SHOTS} shots")
     plain = run_sampler(backend, E, False)
     supp = run_sampler(backend, [e for e in E if SUPPRESSED(e)], True)
-    jobs = dict(backend=backend.name, submitted=datetime.now(timezone.utc).isoformat(timespec="seconds"),
-                job_ids={"plain": plain.job_id(), "suppressed": supp.job_id()})
-    json.dump(jobs, open(JOBS_FILE, "w"), indent=1)
-    print(f"submitted: {jobs['job_ids']}  ->  saved to {JOBS_FILE}\nrun `python -m experiments.ibm_hardware fetch` later")
+    runs = [r for r in _runs() if r["backend"] != backend.name] + [
+        dict(backend=backend.name, submitted=datetime.now(timezone.utc).isoformat(timespec="seconds"),
+             job_ids={"plain": plain.job_id(), "suppressed": supp.job_id()})]
+    json.dump({"runs": runs}, open(JOBS_FILE, "w"), indent=1)
+    print(f"submitted {runs[-1]['job_ids']}  ->  {JOBS_FILE} now tracks {[r['backend'] for r in runs]}")
 
 
 def fetch():
+    """Race the submitted runs: the first backend whose plain job starts running wins; every
+    still-queued job on the other backends is cancelled at once (so it never uses QPU time)."""
     from qiskit_ibm_runtime import QiskitRuntimeService
-    jobs = json.load(open(JOBS_FILE))
     service = QiskitRuntimeService()
-    backend = service.backend(jobs["backend"])
+    runs = _runs()
+    jobs = {(r["backend"], k): service.job(jid) for r in runs for k, jid in r["job_ids"].items()}
+    status = lambda j: str(j.status())
+    winner = None
+    while winner is None:
+        for r in runs:
+            if status(jobs[(r["backend"], "plain")]) in ("RUNNING", "DONE"):
+                winner = r
+                break
+        if winner is None:
+            print(" · ".join(f"{b}/{k}: {status(j)}" for (b, k), j in jobs.items()), flush=True)
+            if all(status(j) in ("ERROR", "CANCELLED") for (b, k), j in jobs.items() if k == "plain"):
+                sys.exit("every plain job failed or was cancelled")
+            time.sleep(60)
+    for (b, k), j in jobs.items():
+        if b != winner["backend"] and status(j) in ("QUEUED", "INITIALIZING", "VALIDATING"):
+            j.cancel()
+            print(f"cancelled {b}/{k} ({j.job_id()}): {winner['backend']} started first", flush=True)
+    backend = service.backend(winner["backend"])
     E = transpile_all(experiments(), backend)  # same seed -> same circuits as submitted
     res = {}
-    for key, jid in jobs["job_ids"].items():
-        job = service.job(jid)
-        while job.status() not in ("DONE", "ERROR", "CANCELLED"):
-            print(f"{key} job {jid}: {job.status()} … waiting", flush=True)
+    for key in winner["job_ids"]:
+        job = jobs[(winner["backend"], key)]
+        while status(job) not in ("DONE", "ERROR", "CANCELLED"):
+            print(f"{winner['backend']}/{key}: {status(job)} … waiting", flush=True)
             time.sleep(60)
-        if job.status() != "DONE":
-            sys.exit(f"{key} job {jid} ended as {job.status()}")
+        if status(job) != "DONE":
+            sys.exit(f"{key} job {job.job_id()} ended as {status(job)}")
         res[key] = job.result()
         try:
             res[key + "_usage"] = job.usage()
         except Exception:
             pass
-    out = collect(backend, E, res["plain"], res["suppressed"], jobs["job_ids"], "IBM hardware")
-    out["submitted"] = jobs["submitted"]
-    out["qpu_seconds"] = {k: res.get(k + "_usage") for k in jobs["job_ids"]}
+    out = collect(backend, E, res["plain"], res["suppressed"], winner["job_ids"], "IBM hardware")
+    out["submitted"] = winner["submitted"]
+    out["qpu_seconds"] = {k: res.get(k + "_usage") for k in winner["job_ids"]}
+    out["other_runs_cancelled"] = [r["job_ids"] for r in runs if r is not winner]
     summary(out)
     save(out, RESULTS / "hardware.json")
     from experiments.hardware_figures import figures
@@ -260,4 +292,8 @@ def fetch():
 
 
 if __name__ == "__main__":
-    {"rehearse": rehearse, "submit": submit, "fetch": fetch}[sys.argv[1] if len(sys.argv) > 1 else "rehearse"]()
+    cmd = sys.argv[1] if len(sys.argv) > 1 else "rehearse"
+    if cmd == "submit":
+        submit(sys.argv[2] if len(sys.argv) > 2 else None)   # e.g. submit ibm_kingston
+    else:
+        {"rehearse": rehearse, "fetch": fetch}[cmd]()
