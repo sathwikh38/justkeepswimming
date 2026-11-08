@@ -23,9 +23,9 @@
             <button data-v="2d" class="on">2D map</button><button data-v="3d">3D view</button>
           </div>
           <div class="seg" id="segNoise">
-            <button data-v="ideal" class="on">Ideal</button><button data-v="noisy">Noisy · FakeTorino</button>
+            <button data-v="ideal" class="on">Ideal</button><button data-v="noisy">Noisy</button>
           </div>
-          <label class="chk"><input type="checkbox" id="classical" /> vs classical</label>
+          <label class="chk"><input type="checkbox" id="showStats" /> stats</label>
         </div>
       </div>
 
@@ -40,9 +40,19 @@
               role="img"
               aria-label="Map with walls, robot and probability overlay"
             ></svg>
-            <div id="three"><div class="hint3d">drag · scroll</div></div>
+            <div id="three"><div class="hint3d">drag Robo · right-click sets home · drag empty space to orbit</div></div>
+            <div class="cc" id="cc" aria-live="polite"></div>
+          </div>
+          <div class="runbar" id="runbar">
+            <div class="seg mini" id="segRun"><button data-v="auto" class="on">Auto</button><button data-v="step">Step</button></div>
+            <button class="ghostbtn" id="nextBtn" disabled>Next step →</button>
+            <span class="grow"></span>
+            <button class="ghostbtn" id="compareBtn" hidden>Quantum vs classical</button>
+            <button class="ghostbtn" id="restartBtn">↺ Restart</button>
           </div>
           <div class="box" id="chartbox">
+            <div class="chead"><span class="ctitle">Grover's search · amplitude of every possibility</span><span class="cround" id="cround"></span></div>
+            <div class="steps" id="steps"><span data-s="sup">1 · Superposition</span><span data-s="oracle">2 · Oracle</span><span data-s="diff">3 · Diffuser</span><span data-s="meas">4 · Measure</span></div>
             <svg
               id="chart"
               viewBox="0 0 560 210"
@@ -71,6 +81,7 @@
             <div class="stats" id="stats"></div>
           </div>
           <div id="stages"></div>
+          <div class="box statsbox" id="statsbox" hidden></div>
           <div class="foot" id="foot"></div>
         </div>
       </div>
@@ -78,6 +89,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <div class="overlay" id="overlay" hidden><div class="modal" id="modal"></div></div>
     <script src="js/qdata.js"></script>
     <script src="js/world.js"></script>
     <script src="js/map2d.js"></script>

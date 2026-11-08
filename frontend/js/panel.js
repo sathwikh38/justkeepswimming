@@ -33,10 +33,6 @@ function face(mood) {
     d: happy ? "M30 68 Q48 92 68 68" : mood === "think" ? "M38 76 Q48 72 58 76" : "M34 77 L60 74",
     ...st,
   });
-  if (happy) {
-    e("path", { d: "M14 64 l6 0", stroke: "#e58a8a", "stroke-width": 3, "stroke-linecap": "round" });
-    e("path", { d: "M78 60 l6 0", stroke: "#e58a8a", "stroke-width": 3, "stroke-linecap": "round" });
-  }
   [
     [92, 22, 2.6, "dot dot1"],
     [101, 14, 3.4, "dot dot2"],
@@ -60,34 +56,33 @@ function say(mood, html, buttons = [], extra = "") {
     const x = document.createElement("button");
     x.className = "btn " + (cls || "");
     x.textContent = t;
-    x.onclick = async () => {
-      if (S.busy) return;
-      S.busy = true;
-      [...b.children].forEach((c) => (c.disabled = true));
-      try {
-        await fn();
-      } finally {
-        S.busy = false;
-      }
-    };
+    x.onclick = fn;
     b.appendChild(x);
   });
 }
-function setStats(N, M, k, q) {
+/* closed-caption line over the map: what Robo is doing right now */
+function caption(html) {
+  const c = $("cc");
+  c.innerHTML = html || "";
+  c.classList.toggle("on", !!html);
+}
+function setStats(N, M, k) {
   $("stats").innerHTML =
     N == null
       ? ""
       : `<span>N <b>${N}</b></span><span>matches <b>${M}</b></span><span>round <b>${k}</b></span>`;
 }
+
+/* ---------------- stage cards (what happened, step by step) ---------------- */
 let STG = null;
 const STAGE_T = { 1: "STAGE 1 · WHERE AM I?", 2: "STAGE 2 · WAY HOME" };
-function stageStart(n) {
+function stageStart(n, title) {
   if (STG && !STG.saved) stageSave("");
   const d = document.createElement("div");
   d.className = "stg live";
-  d.innerHTML = `<div class="sh"><span>${STAGE_T[n]}</span><span class="st">live</span></div><div class="sl"></div><div class="sumbox"></div>`;
+  d.innerHTML = `<div class="sh"><span>${title || STAGE_T[n]}</span><span class="st">live</span></div><div class="sl"></div><div class="sumbox"></div>`;
   $("stages").appendChild(d);
-  STG = { el: d, n, q: 0, c: 0, N: n === 1 ? 16 : 0, qb: 0, saved: false };
+  STG = { el: d, n, saved: false };
 }
 const log = (h) => {
   if (!STG) return;
@@ -95,20 +90,13 @@ const log = (h) => {
   x.innerHTML = "› " + h;
   STG.el.querySelector(".sl").appendChild(x);
 };
-function optHTML(c, q, N) {
-  const w = (v) => Math.max(2, Math.round((100 * v) / c));
-  return `<div class="opt"><span>classical checks</span><div class="bar" style="width:100%"></div><span class="n">${c}</span><span>quantum calls</span><div class="bar q" style="width:${w(q)}%"></div><span class="n">${q}</span></div><div class="optnote">${(c / Math.max(1, q)).toFixed(1)}× fewer calls · ${STG.qb} qubits · at 1M: 1,000,000 vs ≈785</div>`;
-}
 function stageSave(sum) {
   if (!STG || STG.saved) return;
   STG.saved = true;
   STG.el.className = "stg saved";
-  STG.el.querySelector(".st").textContent = "saved ✓";
+  STG.el.querySelector(".st").textContent = "done ✓";
   const el0 = STG.el;
-  el0.querySelector(".sumbox").innerHTML =
-    (sum ? `<div class="sum">${sum}</div>` : "") +
-    (STG.q ? optHTML(STG.c, STG.q, STG.N) : "") +
-    `<button class="more">steps</button>`;
+  el0.querySelector(".sumbox").innerHTML = (sum ? `<div class="sum">${sum}</div>` : "") + `<button class="more">steps</button>`;
   el0.querySelector(".more").onclick = () => el0.classList.toggle("open");
 }
 const readingHTML = (rd) =>
@@ -116,4 +104,56 @@ const readingHTML = (rd) =>
     .map((d, i) => `<span class="rb ${rd[i] ? "w" : ""}">${d} ${rd[i] ? "wall" : "open"}</span>`)
     .join("")}</div>`;
 
-const useCls = () => $("classical").checked;
+/* ---------------- stats (separate, only when toggled) ---------------- */
+// One row per Grover search: what a classical robot would check vs the quantum oracle calls.
+let TALLY = [];
+function tally(row) {
+  TALLY.push(row);
+  renderStats();
+}
+function bars(c, q) {
+  const w = (v) => Math.max(2, Math.round((100 * v) / Math.max(c, q, 1)));
+  return `<div class="opt"><span>classical checks</span><div class="bar" style="width:${w(c)}%"></div><span class="n">${c}</span><span>quantum calls</span><div class="bar q" style="width:${w(q)}%"></div><span class="n">${q}</span></div>`;
+}
+function renderStats() {
+  const box = $("statsbox");
+  box.hidden = !$("showStats").checked;
+  if (!TALLY.length) {
+    box.innerHTML = `<h4>STATS</h4><div class="optnote">Stats appear here as Robo searches.</div>`;
+    return;
+  }
+  box.innerHTML =
+    `<h4>STATS · CLASSICAL VS QUANTUM</h4>` +
+    TALLY.map(
+      (t) =>
+        `<div class="row"><div class="lbl">${t.label}</div>${bars(t.c, t.q)}<div class="optnote">${(t.c / Math.max(1, t.q)).toFixed(1)}× fewer calls · ${t.qubits} qubits (honest oracle) · ${t.gates.toLocaleString()} two-qubit gates per call${t.noisy != null ? ` · noisy success ${pct(t.noisy)}` : ""}</div></div>`,
+    ).join("") +
+    `<div class="optnote">At 1,000,000 squares: 1,000,000 classical checks vs ≈785 Grover calls.</div>`;
+}
+
+/* ---------------- end-of-mission pop-up: quantum vs classical ---------------- */
+function showSummary(outcome) {
+  const c = TALLY.reduce((s, t) => s + t.c, 0),
+    q = TALLY.reduce((s, t) => s + t.q, 0),
+    gates = TALLY.reduce((s, t) => s + t.q * t.gates, 0);
+  $("modal").innerHTML = `
+    <h3>${outcome}</h3>
+    <div class="sub">How many times each approach has to ask “is this the answer?”</div>
+    <div class="vs">
+      <div><small>Classical robot</small><b>${c}</b><span>checks: every square, then every route, one at a time</span></div>
+      <div class="q"><small>Quantum robot (Grover)</small><b>${q}</b><span>oracle calls: all possibilities checked in superposition</span></div>
+    </div>
+    <table class="mt"><tr><th>Search</th><th>Classical</th><th>Quantum</th><th>Qubits</th><th>2q gates / call</th></tr>
+      ${TALLY.map((t) => `<tr><td>${t.label}</td><td class="n">${t.c}</td><td class="n">${t.q}</td><td class="n">${t.qubits}</td><td class="n">${t.gates.toLocaleString()}</td></tr>`).join("")}
+    </table>
+    <div class="honest"><b>${(c / Math.max(1, q)).toFixed(1)}× fewer calls</b>, and the gap grows with the map: 1,000,000 squares need
+      ≈785 Grover calls instead of 1,000,000 checks. The catch: each quantum call is a whole circuit
+      (${gates.toLocaleString()} two-qubit gates in total here), and ${noisy ? "on today's noisy hardware that much circuit washes most of the answer out." : "on today's noisy hardware that is too deep to survive. Switch to Noisy to see it."}</div>
+    <div class="btns"><button class="btn" id="mAgain">Run again</button><button class="btn alt" id="mClose">Close</button></div>`;
+  $("overlay").hidden = false;
+  $("mClose").onclick = () => ($("overlay").hidden = true);
+  $("mAgain").onclick = () => {
+    $("overlay").hidden = true;
+    reset();
+  };
+}

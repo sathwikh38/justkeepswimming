@@ -139,108 +139,86 @@ const $ = (id) => document.getElementById(id);
 const phase = (h) => ($("phase").innerHTML = h);
 const lerp = (a, b, u) => a.map((v, i) => v + (b[i] - v) * u);
 
+const STEPS = ["sup", "oracle", "diff", "meas"];
+function setStep(step, r, k) {
+  const i = STEPS.indexOf(step);
+  document.querySelectorAll("#steps span").forEach((e, j) => {
+    e.classList.toggle("on", j === i);
+    e.classList.toggle("done", i >= 0 && j < i);
+  });
+  $("cround").textContent = k ? `round ${Math.max(r, 0)} of ${k}` : "";
+}
+
 async function grover(N, marked, k, toMap) {
   let a = Array(N).fill(1 / Math.sqrt(N));
-  const nm = toMap.names;
+  const what = N === 16 ? "squares" : "routes",
+    M = marked.size,
+    one = what.slice(0, -1),
+    matching = M === 1 ? `1 matching ${one}` : `${M} matching ${what}`;
   const show = (arr) => {
-    if (toMap.f) {
-      S.probs = toMap.f(arr);
-      S.sup = S.probs;
-    }
+    if (toMap.f) S.probs = toMap.f(arr);
+    S.sup = null;
     if (N === 16 && !toMap.shift) {
       S.amps = arr;
       S.ampMarked = marked;
     } else S.amps = null;
     render2D();
   };
-  const dc = (arr, o = {}) => drawChart(arr, marked, { ...o, names: nm });
+  const dc = (arr, o = {}) => drawChart(arr, marked, { ...o, names: toMap.names });
   dc(a);
   show(a);
-  setStats(N, marked.size, 0);
-  phase(`<b>Superposition:</b> every ${N === 16 ? "square" : "plan"} equally likely.`);
-  await sleep(1300);
+  setStats(N, M, 0);
+  setStep("sup", 0, k);
+  phase(`<b>Superposition:</b> every ${one} starts equally likely (each bar = one ${one}).`);
+  await beat(`Putting all ${N} ${what} in superposition: every one equally likely`, 1500);
   for (let r = 1; r <= k; r++) {
-    setStats(N, marked.size, r);
-    const fast = r > 2;
+    setStats(N, M, r);
+    const fast = r > 2 && RUN.mode === "auto";
     const flipped = a.map((v, i) => (marked.has(i) ? -v : v)),
       a0 = a.slice();
-    if (!fast) {
-      phase(`<b>Round ${r} · Oracle:</b> flip the sign of every match.`);
-      await tween(700, (u) => {
-        const cur = lerp(a0, flipped, u);
-        dc(cur, { old: a0 });
-        show(cur);
-      });
-      await sleep(650);
-    }
-    a = flipped;
-    const mean = a.reduce((s, v) => s + v, 0) / N,
-      target = a.map((v) => 2 * mean - v);
-    if (!fast) {
-      phase(
-        `<b>Round ${r} · Diffuser:</b> mirror every bar across the <span style="color:var(--blue)">average</span>. Flipped bars jump up.`,
-      );
-      dc(a, { avg: true });
-      await sleep(1000);
-      dc(a, { avg: true, old: a, arrows: true, target });
-      await sleep(1200);
-      const a1 = a.slice();
-      await tween(800, (u) => {
-        const cur = lerp(a1, target, u);
-        dc(cur, { avg: true, old: a1 });
-        show(cur);
-      });
-    } else {
+    const mean = flipped.reduce((s, v) => s + v, 0) / N,
+      target = flipped.map((v) => 2 * mean - v);
+    if (fast) {
+      setStep("diff", r, k);
       phase(`<b>Rounds 3–${k}:</b> same two steps, sped up.`);
-      const a1 = a0.slice();
-      await tween(k > 8 ? 160 : 350, (u) => {
-        const cur = lerp(a1, target, u);
+      caption(`Round ${r} of ${k}: oracle + diffuser again`);
+      await tween(k > 8 ? 220 : 420, (u) => {
+        const cur = lerp(a0, target, u);
         dc(cur);
         show(cur);
       });
+      a = target;
+      continue;
     }
+    setStep("oracle", r, k);
+    phase(`<b>Oracle:</b> flip the sign of the ${matching}. ${M === 1 ? "Its bar points" : "Their bars point"} down.`);
+    caption(`Round ${r} of ${k} · <b>Oracle</b>: flip the sign of the ${matching}`);
+    await tween(800, (u) => {
+      const cur = lerp(a0, flipped, u);
+      dc(cur, { old: a0 });
+      show(cur);
+    });
+    a = flipped;
+    await beat(null, 700);
+    setStep("diff", r, k);
+    phase(`<b>Diffuser:</b> mirror every bar across the <span style="color:var(--blue)">average</span>. The flipped bars jump up, the rest shrink.`);
+    caption(`Round ${r} of ${k} · <b>Diffuser</b>: mirror every bar across the average`);
+    dc(a, { avg: true });
+    await beat(null, 900);
+    dc(a, { avg: true, old: a, arrows: true, target });
+    await beat(null, 1000);
+    const a1 = a.slice();
+    await tween(900, (u) => {
+      const cur = lerp(a1, target, u);
+      dc(cur, { avg: true, old: a1 });
+      show(cur);
+    });
     a = target;
     const pm = [...marked].reduce((t, i) => t + a[i] * a[i], 0);
-    if (!fast || r === k) {
-      phase(
-        `<b>After round ${r}:</b> ${(pm * 100).toFixed(1)}% on matches (theory ${(theory(N, marked.size, r) * 100).toFixed(1)}%)${r === k ? " · stop here" : ""}`,
-      );
-      await sleep(r === k ? 900 : 1100);
-    }
+    phase(`<b>After round ${r}:</b> ${(pm * 100).toFixed(1)}% chance of measuring a match (theory ${(theory(N, M, r) * 100).toFixed(1)}%).`);
+    await beat(`After round ${r}: <b>${(pm * 100).toFixed(0)}%</b> chance of a match`, 1100);
   }
   dc(a);
+  setStep("meas", k, k);
   return a;
-}
-
-async function classicalScan(N, marked, onMap, names) {
-  let checks = 0,
-    found = [];
-  const step = Math.max(1, Math.ceil(N / 64));
-  phase(`<b>Classical:</b> check one ${N === 16 ? "square" : "plan"} at a time.`);
-  const flat = Array(N).fill(1 / Math.sqrt(N));
-  for (let i = 0; i < N; i++) {
-    checks++;
-    if (marked.has(i)) found.push(i);
-    if (onMap) {
-      S.cls[i] = "scan";
-      render2D();
-      phase(`<b>Classical check ${i + 1}/${N}:</b> ${gridName(i)} ${marked.has(i) ? "✓ match" : "✗"}`);
-      await sleep(190);
-      S.cls[i] = marked.has(i) ? "ok" : "no";
-      render2D();
-    } else if (i % step === 0 || i === N - 1)
-      phase(`<b>Classical check ${i + 1}/${N}:</b> plan ${names ? names[i] : i}${marked.has(i) ? " ✓" : ""}`);
-    if (onMap || i % step === 0 || i === N - 1) {
-      drawChart(flat, marked, { scan: i, names });
-      $("stats").innerHTML =
-        `<span>classical checks <b>${checks}/${N}</b></span><span>found <b>${found.length}</b></span>`;
-      await sleep(onMap ? 40 : 45);
-    }
-  }
-  await sleep(600);
-  if (onMap) {
-    S.cls = {};
-    render2D();
-  }
-  return checks;
 }

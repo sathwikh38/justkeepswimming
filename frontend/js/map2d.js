@@ -31,6 +31,7 @@ function drawMap() {
   };
   mk("ahB", "#1d4ed8");
   mk("ahG", "#6b747c");
+  ["#1d4ed8", "#c2410c", "#15803d"].forEach((c, i) => mk("ahP" + i, c));
   if (!out) {
     const p = el(
       "pattern",
@@ -303,6 +304,7 @@ function drawMap() {
   txt(na, 0, -15, "N", { "text-anchor": "middle", "font-size": 10, "font-family": MONO });
   L.home = el("g");
   L.trail = el("g");
+  L.paths = el("g");
   L.sup = el("g");
   L.ghosts = el("g");
   L.robot = el("g", { id: "robo", style: "transition:transform .6s cubic-bezier(.4,.1,.2,1)" });
@@ -411,6 +413,29 @@ function render2D() {
       L.trail,
     ),
   );
+  L.paths.innerHTML = "";
+  (S.paths || []).forEach((p) => {
+    const off = (p.idx - (p.of - 1) / 2) * 12; // side-by-side when several routes share a corridor
+    const P = (x) => [cx(x) + off, cy(x) + off];
+    for (let j = 0; j < p.n; j++) {
+      const [x1, y1] = P(p.cells[j]),
+        [x2, y2] = P(p.cells[j + 1]);
+      if (p.cells[j] === p.cells[j + 1]) {
+        const [dr, dc] = STEP[p.dirs[j]],
+          ex = x1 + dc * T * 0.36,
+          ey = y1 + dr * T * 0.36;
+        el("line", { x1, y1, x2: ex, y2: ey, stroke: p.color, "stroke-width": 4, "stroke-dasharray": "3 3", opacity: 0.9 }, L.paths);
+        el("line", { x1: ex + (dr ? -9 : 0), y1: ey + (dc ? -9 : 0), x2: ex + (dr ? 9 : 0), y2: ey + (dc ? 9 : 0), stroke: p.color, "stroke-width": 4, "stroke-linecap": "round" }, L.paths);
+        txt(L.paths, ex + (dc ? -dc * 4 : 12), ey + (dr ? -dr * 6 : -10), "bump", { "font-size": 10, "font-family": MONO, fill: p.color, "text-anchor": dc > 0 ? "end" : "start", "font-weight": 600 });
+      } else
+        el("line", { x1, y1, x2: x2 - (x2 - x1) * 0.12, y2: y2 - (y2 - y1) * 0.12, stroke: p.color, "stroke-width": 5, "stroke-linecap": "round", "marker-end": `url(#ahP${p.idx % 3})`, opacity: 0.92 }, L.paths);
+      const [nx, ny] = P(p.cells[j + 1]);
+      el("circle", { cx: nx, cy: ny, r: 9, fill: "#fff", stroke: p.color, "stroke-width": 2 }, L.paths);
+      txt(L.paths, nx, ny + 3.5, String(j + 1), { "text-anchor": "middle", "font-size": 10, "font-weight": 600, "font-family": MONO, fill: p.color });
+    }
+    const [sx, sy] = P(p.cells[0]);
+    el("circle", { cx: sx, cy: sy, r: 6, fill: p.color }, L.paths);
+  });
   L.ghosts.innerHTML = "";
   S.ghosts.forEach((x) => {
     const g = el(

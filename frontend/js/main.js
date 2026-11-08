@@ -31,17 +31,28 @@ seg("segView", (v) => {
     }
     init3D();
     update3D();
-  }
+  } else render2D();
 });
 seg("segNoise", (v) => {
   noisy = v === "noisy";
   setFoot();
 });
+seg("segRun", (v) => {
+  RUN.mode = v;
+  if (v === "auto") wake(); // let a paused mission carry on by itself
+});
+$("nextBtn").onclick = wake;
+$("restartBtn").onclick = reset;
+$("compareBtn").onclick = () => showSummary("Mission summary");
+$("showStats").onchange = renderStats;
+$("overlay").onclick = (e) => {
+  if (e.target.id === "overlay") $("overlay").hidden = true;
+};
 function setFoot() {
   $("foot").textContent = !Q
     ? "Qiskit data missing: run python -m experiments.precompute_ui · showing in-browser ideal maths"
     : noisy
-      ? `Noisy · Qiskit Aer with ${Q.device} noise · compiled oracle, k ≤ 2 · ${Q.shots} shots`
+      ? `Noisy · Qiskit Aer with the ${Q.device} noise model · compiled oracle, k ≤ 2 · ${Q.shots} shots`
       : "Ideal · exact Qiskit statevector results";
 }
 setFoot();

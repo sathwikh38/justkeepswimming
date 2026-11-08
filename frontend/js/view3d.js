@@ -14,6 +14,57 @@ function init3D() {
   ctl.target.set(0, 0, 0);
   ctl.enableDamping = true;
   ctl.maxPolarAngle = Math.PI * 0.49;
+  ctl.enablePan = false; // right-click sets home instead
+  // drag Robo / right-click home, by projecting the pointer onto the floor (y = 0)
+  const ray = new THREE.Raycaster(),
+    floorPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+  const floorAt = (ev) => {
+    const r = ren.domElement.getBoundingClientRect();
+    ray.setFromCamera(new THREE.Vector2(((ev.clientX - r.left) / r.width) * 2 - 1, -((ev.clientY - r.top) / r.height) * 2 + 1), cam);
+    const p = new THREE.Vector3();
+    return ray.ray.intersectPlane(floorPlane, p) ? p : null;
+  };
+  const cellOf = (p) => {
+    const c = Math.floor(p.x + 2),
+      r = Math.floor(p.z + 2);
+    return p && r >= 0 && r < 4 && c >= 0 && c < 4 ? idx(r, c) : -1;
+  };
+  ren.domElement.addEventListener("pointerdown", (ev) => {
+    if (stage !== "setup" || S.busy || ev.button !== 0) return;
+    const p = floorAt(ev),
+      [X, Z] = P3(S.pos);
+    if (!p || Math.hypot(p.x - X, p.z - Z) > 0.4) return; // not on Robo: let OrbitControls orbit
+    ctl.enabled = false;
+    R3.drag = true;
+    ren.domElement.setPointerCapture(ev.pointerId);
+    ren.domElement.style.cursor = "grabbing";
+  });
+  ren.domElement.addEventListener("pointermove", (ev) => {
+    const p = floorAt(ev);
+    if (!R3.drag) {
+      const [X, Z] = P3(S.pos);
+      ren.domElement.style.cursor = stage === "setup" && p && Math.hypot(p.x - X, p.z - Z) < 0.4 ? "grab" : "";
+      return;
+    }
+    if (p && R3.robot) R3.robot.position.set(Math.max(-2, Math.min(2, p.x)), 0.05, Math.max(-2, Math.min(2, p.z)));
+  });
+  ren.domElement.addEventListener("pointerup", (ev) => {
+    if (!R3.drag) return;
+    R3.drag = false;
+    ctl.enabled = true;
+    ren.domElement.style.cursor = "";
+    const p = floorAt(ev);
+    if (p) dropAt(cellOf(p));
+    setupView();
+    update3D();
+  });
+  ren.domElement.addEventListener("contextmenu", (ev) => {
+    ev.preventDefault();
+    if (stage !== "setup" || S.busy) return;
+    const p = floorAt(ev);
+    if (p) homeAt(cellOf(p));
+    setupView();
+  });
   scene.add(new THREE.HemisphereLight(0xffffff, 0x9aa3ab, 0.85));
   const dl = new THREE.DirectionalLight(0xffffff, 0.6);
   dl.position.set(4, 8, 3);
@@ -131,7 +182,26 @@ function update3D() {
     const [X, Z] = P3(S.pos);
     r.position.set(X, 0, Z);
     D.add(r);
+    R3.robot = r;
   }
+  (S.paths || []).forEach((p) => {
+    const mat = new THREE.MeshLambertMaterial({ color: new THREE.Color(p.color) }),
+      off = (p.idx - (p.of - 1) / 2) * 0.1;
+    for (let j = 0; j < p.n; j++) {
+      const [x1, z1] = P3(p.cells[j]),
+        [x2, z2] = P3(p.cells[j + 1]);
+      if (p.cells[j] === p.cells[j + 1]) {
+        const [dr, dc] = STEP[p.dirs[j]];
+        const m = new THREE.Mesh(new THREE.BoxGeometry(dr ? 0.3 : 0.05, 0.08, dc ? 0.3 : 0.05), mat);
+        m.position.set(x1 + off + dc * 0.38, 0.06, z1 + off + dr * 0.38); // "bump" bar at the wall
+        D.add(m);
+        continue;
+      }
+      const m = new THREE.Mesh(new THREE.BoxGeometry(Math.abs(x2 - x1) + 0.06, 0.04, Math.abs(z2 - z1) + 0.06), mat);
+      m.position.set((x1 + x2) / 2 + off, 0.03, (z1 + z2) / 2 + off);
+      D.add(m);
+    }
+  });
   S.ghosts.forEach((x) => {
     const g = robotMesh(true, 0.35);
     const [X, Z] = P3(x);

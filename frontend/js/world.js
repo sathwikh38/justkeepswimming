@@ -142,6 +142,7 @@ const S = {
   ampMarked: null,
   ghosts: [],
   trail: [],
+  paths: [],
   cls: {},
   busy: false,
 };
