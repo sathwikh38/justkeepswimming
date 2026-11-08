@@ -78,17 +78,18 @@ Corner robot, M = 1, FakeTorino noise (random guess = 0.0625):
 - **Takeaway:** the honest oracle is cheap when the building is regular. How compressible
   the map is decides whether Grover's search can work on real hardware.
 
-## Live demo (`demo/`)
+## Live demo (`frontend/`)
 
 ```bash
-python precompute_demo.py                          # ~4 min, regenerates demo/data.js
-python -m http.server 8765 --directory demo        # then open http://localhost:8765
+python precompute_ui.py                          # ~10-15 min, regenerates frontend/js/qdata.js
+python -m http.server 8000 --directory frontend  # then open http://localhost:8000
 ```
 
-Click a cell to drop the robot, press **Sense** (stage 1 heat map), move with N/E/S/W
-(the heat map sharpens), then **Go home** (stage 2: Grover's plan is walked from every
-possible position). The **Noisy (FakeTorino)** toggle swaps in the noisy results.
-All numbers are precomputed by `precompute_demo.py` from the same Qiskit circuits.
+Drag Robo anywhere, right-click a square to set home, then **Sense → Find me → … → Go**.
+Stage 1 rescans until Robo knows where it is; stage 2 searches the 64 three-move plans for one
+that works from every possible position (via a waypoint if home is out of reach).
+**Ideal / Noisy · FakeTorino** switches between exact statevector and FakeTorino-noise results,
+all precomputed with Qiskit for the frontend's building. See `frontend/README.md`.
 
 ## Noise on both stages (`run_noise.py`, `fig6_noise_both_stages.png`)
 

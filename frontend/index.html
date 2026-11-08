@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Just Keep Swimming</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="top">
+        <div class="brand">JUST KEEP SWIMMING</div>
+        <div class="ctrls">
+          <div class="seg" id="segWorld">
+            <button data-v="indoor" class="on">Indoor</button><button data-v="outdoor">Outdoor</button>
+          </div>
+          <div class="seg" id="segView">
+            <button data-v="2d" class="on">2D map</button><button data-v="3d">3D view</button>
+          </div>
+          <div class="seg" id="segNoise">
+            <button data-v="ideal" class="on">Ideal</button><button data-v="noisy">Noisy · FakeTorino</button>
+          </div>
+          <label class="chk"><input type="checkbox" id="classical" /> vs classical</label>
+        </div>
+      </div>
+
+      <div class="main">
+        <div>
+          <div class="box" id="mapbox">
+            <label class="maptog"><input type="checkbox" id="reveal" checked /> true position</label>
+            <div class="maphint" id="maphint">drag Robo · right-click a square to set home</div>
+            <svg
+              id="map"
+              viewBox="0 0 560 560"
+              role="img"
+              aria-label="Map with walls, robot and probability overlay"
+            ></svg>
+            <div id="three"><div class="hint3d">drag · scroll</div></div>
+          </div>
+          <div class="box" id="chartbox">
+            <svg
+              id="chart"
+              viewBox="0 0 560 210"
+              role="img"
+              aria-label="Amplitude of every possibility"
+            ></svg>
+            <div class="phase" id="phase">One bar per possibility. Height = amplitude.</div>
+            <div class="key">
+              <span><i style="background: var(--accent)"></i>match</span
+              ><span><i style="background: #9aa3ab"></i>other</span
+              ><span><i style="border-top: 2px dashed var(--blue); height: 0; width: 14px"></i>average</span
+              ><span><i style="border: 1px dashed #9aa3ab; background: transparent"></i>before</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="think">
+            <svg id="face" viewBox="0 0 120 110" aria-hidden="true"></svg>
+            <h2 id="bubble">where am I?</h2>
+          </div>
+          <div class="box" id="panel">
+            <div class="thought" id="thought"></div>
+            <div id="extra"></div>
+            <div class="btns" id="btns"></div>
+            <div class="stats" id="stats"></div>
+          </div>
+          <div id="stages"></div>
+          <div class="foot" id="foot"></div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="js/qdata.js"></script>
+    <script src="js/world.js"></script>
+    <script src="js/map2d.js"></script>
+    <script src="js/view3d.js"></script>
+    <script src="js/search.js"></script>
+    <script src="js/panel.js"></script>
+    <script src="js/story.js"></script>
+    <script src="js/main.js"></script>
+  </body>
+</html>
