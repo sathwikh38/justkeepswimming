@@ -7,3 +7,4 @@ __pycache__/
 .vercel/
 LEARNING.md
 DEVPOST.md
+.env*
