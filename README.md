@@ -78,6 +78,18 @@ Corner robot, M = 1, FakeTorino noise (random guess = 0.0625):
 - **Takeaway:** the honest oracle is cheap when the building is regular. How compressible
   the map is decides whether Grover's search can work on real hardware.
 
+## Live demo (`demo/`)
+
+```bash
+python precompute_demo.py                          # ~4 min, regenerates demo/data.js
+python -m http.server 8765 --directory demo        # then open http://localhost:8765
+```
+
+Click a cell to drop the robot, press **Sense** (stage 1 heat map), move with N/E/S/W
+(the heat map sharpens), then **Go home** (stage 2: Grover's plan is walked from every
+possible position). The **Noisy (FakeTorino)** toggle swaps in the noisy results.
+All numbers are precomputed by `precompute_demo.py` from the same Qiskit circuits.
+
 ## Noise on both stages (`run_noise.py`, `fig6_noise_both_stages.png`)
 
 FakeTorino noise model, 4,000 shots, transpiled with optimization level 3.
