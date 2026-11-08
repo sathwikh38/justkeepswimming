@@ -169,7 +169,7 @@ What the noise results show:
    saves 22% of the stage-2 oracle's gates (766 → 599 all-to-all), because walk A no longer has to be
    recomputed to clear its flag.
 
-## Honest limits
+## Limits
 
 - Grover needs ~√(N/M) oracle calls instead of N classical checks, but the oracle must encode the map.
   On irregular maps that costs more gates than Grover saves.
@@ -181,19 +181,6 @@ What the noise results show:
   where this approach would scale.
 - On today's hardware the quantum computer would be in the cloud, not on the robot.
 - Real sensors make mistakes. Extension: accept cells within one wall bit of the reading.
-
-## What's next
-
-**Real IBM hardware results (pending).** The full experiment in `experiments/ibm_hardware.py`
-(54 circuits × 4,000 shots: success vs k, all 16 targets, honest oracles, stage 2, with and without
-error suppression) is queued on IBM's free plan. The Qiskit Fall Fest queue is over 20,000 jobs deep. Job IDs, verifiable on
-IBM Quantum Platform: ibm_fez `dbo14f0ou4as73b5atrg`, `dbo14f8qtr0c73adqjkg`; backup on ibm_kingston
-`dbo1hroqtr0c73adrhb0`, `dbo1hs0qtr0c73adrhbg`. The same pipeline rehearsed on FakeTorino is in
-`results/hardware_rehearsal.json` and `results/rehearsal_fig7–9*.png`; measured results will be added here.
-
-Wall-segment oracle (cost ~ walls × log N instead of cells), continuous coordinates with ray casting
-and a tolerance ε, coarse-to-fine room-then-cell search, unknown M via randomized k (BBHT) or quantum
-counting, and Bennett's pebble game for longer plans.
 
 ## References
 
