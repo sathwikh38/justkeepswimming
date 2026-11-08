@@ -80,6 +80,8 @@ Corner robot, M = 1, FakeTorino noise (random guess = 0.0625):
 
 ## Live demo (`frontend/`)
 
+Live: https://just-keep-swimming-lake.vercel.app
+
 ```bash
 python precompute_ui.py                          # ~10-15 min, regenerates frontend/js/qdata.js
 python -m http.server 8000 --directory frontend  # then open http://localhost:8000
