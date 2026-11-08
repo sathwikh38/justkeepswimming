@@ -111,6 +111,39 @@ Why stage 2 degrades so much more than stage 1:
 Takeaway: on today's hardware the search space, not just the oracle, sets the limit.
 Each extra qubit makes the diffuser's multi-controlled gate much deeper.
 
+## Stage 2, honest: Bennett plan oracle (`stage2.py`, `run_stage2_bennett.py`, `fig7_stage2_bennett.png`)
+
+The oracle sees only the map, the possible starts and home, never the answer. For each start it
+simulates the walk on qubits: **compute** the walk, **copy** "did it end at home?" into a flag,
+**uncompute** the walk. It then flips the phase when every flag is 1 and uncomputes the flags.
+
+| Qubit-saving idea | How it shows up |
+|---|---|
+| 2 qubits per move | plan register = 6 qubits for 64 plans |
+| Move 1 needs no position register | the start is known, so the cell after moves 1–2 is a fixed function of the plan's first 4 qubits, written straight into `pos` as Reed–Muller formulas |
+| Move 3 needs no position register | we only check "does move(pos, m3) land on home?" into a flag |
+| Ancilla reuse via uncompute | walk A → flag a → undo; walk B reuses the same `pos` qubits |
+| In-place phase flip | CZ on the two flags (H–MCX–H in general), no extra \|−⟩ qubit |
+
+Verified in `tests/test_stage2.py`: for every ambiguous pair of starts × 3 homes (plus single starts),
+the oracle gives the same ±1 phases as the compiled oracle on all 64 plans, and every ancilla
+returns to \|0⟩. Noiseless Grover with it matches sin²((2k+1)θ) to 10⁻⁹ (0.997 at k = 6).
+
+| One oracle call | Qubits | 2q gates, all-to-all | 2q gates, FakeTorino |
+|---|---|---|---|
+| Compiled (not honest) | 6 | 62 | 90 |
+| Bennett, reuse `pos` | 12 | 766 | 1,843 |
+| Bennett, one `pos` per start | 16 | 599 | 1,521 |
+
+**Pebble-game trade-off.** Reusing `pos` saves 4 qubits, but walk A must be recomputed to clear
+its flag (it runs 4× instead of 2×). Giving each start its own register costs 4 qubits and saves
+22% of the gates. Bennett's pebble game generalises this: with more steps you choose which
+intermediate positions to keep and which to recompute.
+
+**With noise** (FakeTorino, k = 1–3) the honest oracle lands on random guessing (0.014–0.021
+vs 1/64 = 0.016) with ~1,900 two-qubit gates per iteration; the compiled one reaches only 0.054.
+Stage 2 works in theory and in noiseless simulation, but not on today's hardware.
+
 ## Ideas to extend
 - Unknown M: use quantum counting or randomized k (BBHT), since a real robot
   doesn't know how ambiguous its reading is.

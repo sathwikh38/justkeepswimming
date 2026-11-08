@@ -1,0 +1,93 @@
+{
+ "cost": {
+  "compiled oracle (6 qubits, not honest)": {
+   "qubits": 6,
+   "all_to_all": 62,
+   "torino": 90
+  },
+  "Bennett oracle (12 qubits, honest)": {
+   "qubits": 12,
+   "all_to_all": 766,
+   "torino": 1843
+  },
+  "one walk (pos ^= cell after 2 moves)": {
+   "qubits": 10,
+   "all_to_all": 48,
+   "torino": 89
+  },
+  "one home check (flag ^= [end == home])": {
+   "qubits": 12,
+   "all_to_all": 30,
+   "torino": 67
+  }
+ },
+ "noiseless_honest": [
+  0.015624999999999986,
+  0.1348266601562373,
+  0.34389519691460774,
+  0.5913801500572063,
+  0.816377019396583,
+  0.9635154816187531,
+  0.9965856807862316,
+  0.9074492475726574,
+  0.7180421010891938
+ ],
+ "noisy": [
+  {
+   "oracle": "compiled",
+   "k": 0,
+   "measured": 0.0155,
+   "two_qubit_gates": 0,
+   "theory": 0.015625
+  },
+  {
+   "oracle": "compiled",
+   "k": 1,
+   "measured": 0.0545,
+   "two_qubit_gates": 225,
+   "theory": 0.13482666015625
+  },
+  {
+   "oracle": "compiled",
+   "k": 2,
+   "measured": 0.054,
+   "two_qubit_gates": 478,
+   "theory": 0.34389519691467285
+  },
+  {
+   "oracle": "compiled",
+   "k": 3,
+   "measured": 0.042,
+   "two_qubit_gates": 703,
+   "theory": 0.5913801500573754
+  },
+  {
+   "oracle": "bennett",
+   "k": 0,
+   "measured": 0.0155,
+   "two_qubit_gates": 0,
+   "theory": 0.015625
+  },
+  {
+   "oracle": "bennett",
+   "k": 1,
+   "measured": 0.015,
+   "two_qubit_gates": 1895,
+   "theory": 0.13482666015625
+  },
+  {
+   "oracle": "bennett",
+   "k": 2,
+   "measured": 0.0215,
+   "two_qubit_gates": 3853,
+   "theory": 0.34389519691467285
+  },
+  {
+   "oracle": "bennett",
+   "k": 3,
+   "measured": 0.014,
+   "two_qubit_gates": 5964,
+   "theory": 0.5913801500573754
+  }
+ ]
+}

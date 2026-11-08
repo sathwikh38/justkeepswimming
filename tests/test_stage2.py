@@ -61,3 +61,40 @@ def test_plan_search_matches_theory(k):
 def test_best_k_for_stage2():
     # M = 1 of 64 needs 6 iterations (stage 1's corner case needs 3): deeper circuit, more noise.
     assert best_k(N_PLANS, 1) == 6
+
+
+# --- M10: the honest Bennett oracle --------------------------------------------
+from stage2 import bennett_plan_oracle
+
+# Every pair of cells that stage 1 can't tell apart, plus single known starts, to several homes.
+_PAIRS = [(a, b) for a in range(16) for b in range(a + 1, 16) if DEMO_MAP.reading(a) == DEMO_MAP.reading(b)]
+_CASES = [(pair, h) for pair in _PAIRS for h in (DEMO_HOME, 0, 10)] + [((s,), DEMO_HOME) for s in range(0, 16, 3)]
+
+
+@pytest.mark.parametrize("starts,home", _CASES)
+def test_bennett_oracle_matches_compiled_and_cleans_up(starts, home):
+    o = bennett_plan_oracle(DEMO_MAP, starts, home)
+    assert o.num_qubits == 6 + 4 + len(starts)              # plan + pos + one flag per start
+    good = set(good_plans(DEMO_MAP, starts, home))
+    for p in range(N_PLANS):
+        out = Statevector.from_int(p, 2 ** o.num_qubits).evolve(o)
+        amp = out.data[p]                                   # pos and flags must be back at |0>
+        assert abs(amp - (-1 if p in good else 1)) < 1e-9, f"plan {decode(p)}"
+
+
+@pytest.mark.parametrize("k", [1, 3, 6])
+def test_honest_plan_search_matches_theory(k):
+    good = good_plans(DEMO_MAP, DEMO_STARTS, DEMO_HOME)
+    qc = plan_search_circuit(DEMO_MAP, DEMO_STARTS, DEMO_HOME, k, measure=False, honest=True)
+    p = Statevector(qc).probabilities(qargs=range(6))       # marginal over the plan register
+    assert abs(sum(p[g] for g in good) - theory_success(N_PLANS, len(good), k)) < 1e-9
+
+
+def test_no_reuse_variant_is_the_same_unitary():
+    # 16 qubits (one pos register per start): fewer gates, same oracle.
+    o = bennett_plan_oracle(DEMO_MAP, DEMO_STARTS, DEMO_HOME, reuse_pos=False)
+    assert o.num_qubits == 16
+    good = set(good_plans(DEMO_MAP, DEMO_STARTS, DEMO_HOME))
+    for p in range(N_PLANS):
+        amp = Statevector.from_int(p, 2 ** 16).evolve(o).data[p]
+        assert abs(amp - (-1 if p in good else 1)) < 1e-9

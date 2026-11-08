@@ -10,9 +10,10 @@ Encoding: 2 qubits per move, 3 moves = 6 qubits = 64 plans.
     move i lives in bits (2i, 2i+1) of the plan integer, so the measured
     bitstring read as an int IS the plan (Qiskit is little-endian).
 
-The oracle here is the compiled DiagonalGate (-1 on good plans). Like stage 1's
-compiled oracle it is NOT honest: it evaluates plan_works classically for all 64
-plans. It is the lower bound on cost; the Bennett version is milestone M10.
+Two oracles, same unitary on the plan register (-1 on good plans):
+  compiled_plan_oracle  DiagonalGate. NOT honest: evaluates plan_works classically for
+                        all 64 plans. The lower bound on cost.
+  bennett_plan_oracle   honest: simulates both walks on qubits (compute, check, uncompute).
 """
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 from qiskit.circuit.library import DiagonalGate
@@ -67,14 +68,96 @@ def compiled_plan_oracle(gmap: GridMap, starts, home: int) -> QuantumCircuit:
     return qc
 
 
-def plan_search_circuit(gmap: GridMap, starts, home: int, k: int, measure=True) -> QuantumCircuit:
+# ----------------------------------------------------------------------------
+# Honest oracle: Bennett's construction (M10). Sees only the map, starts and home.
+# ----------------------------------------------------------------------------
+# Registers: plan (6) + pos (4) + one flag per start (2)  =  12 qubits.
+#   * Move 1 needs no position register: the start is known, so the position after
+#     moves 1-2 is a fixed function of the plan's first 4 qubits.  pos ^= walk2(s, m1, m2)
+#     is written bit by bit as a cheapest-polarity Reed-Muller formula (as in M6).
+#   * Move 3 needs no register either: we only ask "is move(pos, m3) == home?"
+#   * Walk A -> flag a -> undo walk; walk B reuses the same pos qubits (ancilla reuse).
+def _mcx_on_value(qc, controls, value, target):
+    """Flip target iff the controls hold `value` (little-endian)."""
+    zeros = [q for i, q in enumerate(controls) if not (value >> i) & 1]
+    if zeros: qc.x(zeros)
+    qc.mcx(list(controls), target)
+    if zeros: qc.x(zeros)
+
+
+def _walk2(qc, gmap, start, plan, pos):
+    """pos ^= cell after moves 1 and 2. Self-inverse (only XORs), so calling it again undoes it."""
+    from formula_oracle import best_form
+    after2 = [gmap.move(gmap.move(start, DIRS[v & 3]), DIRS[v >> 2]) for v in range(16)]
+    for i in range(4):
+        pol, terms = best_form([(x >> i) & 1 for x in after2], 4)
+        neg = [plan[j] for j in range(4) if pol >> j & 1]
+        if neg and terms: qc.x(neg)
+        for t in terms:
+            ctrl = [plan[j] for j in range(4) if t >> j & 1]
+            if not ctrl: qc.x(pos[i])
+            else: qc.mcx(ctrl, pos[i])
+        if neg and terms: qc.x(neg)
+
+
+def _check_home(qc, gmap, start, plan, pos, flag, home):
+    """flag ^= [move(pos, m3) == home], only for cells reachable from `start` in 2 moves."""
+    reach = sorted({gmap.move(gmap.move(start, a), b) for a in DIRS for b in DIRS})
+    for x in reach:
+        for c in range(4):
+            if gmap.move(x, DIRS[c]) == home:
+                _mcx_on_value(qc, list(pos) + [plan[4], plan[5]], x | c << 4, flag)
+
+
+def bennett_plan_oracle(gmap: GridMap, starts, home: int, reuse_pos=True) -> QuantumCircuit:
+    """reuse_pos=True : one pos register shared by all walks (fewer qubits, earlier walks re-run).
+    reuse_pos=False: one pos register per start (more qubits, every walk runs only twice).
+    This is the qubits-vs-gates trade-off of Bennett's pebble game."""
     plan = QuantumRegister(N_PLAN_QUBITS, "plan")
-    qc = QuantumCircuit(plan)
-    o = compiled_plan_oracle(gmap, starts, home)
+    pos = [QuantumRegister(4, "pos")] if reuse_pos else [QuantumRegister(4, f"pos{i}") for i in range(len(starts))]
+    ok = QuantumRegister(len(starts), "ok")
+    qc = QuantumCircuit(plan, *pos, ok, name="PlanOracle(Bennett)")
+    P = (lambda i: pos[0]) if reuse_pos else (lambda i: pos[i])
+    n = len(starts)
+
+    def phase_flip():                         # in-place phase flip on "all flags = 1": H-MCX-H
+        if n == 1: qc.z(ok[0])
+        else: qc.h(ok[-1]); qc.mcx(list(ok[:-1]), ok[-1]); qc.h(ok[-1])
+
+    if not reuse_pos:                         # walk + check every start, flip, then undo everything
+        for i, s in enumerate(starts):
+            _walk2(qc, gmap, s, plan, P(i)); _check_home(qc, gmap, s, plan, P(i), ok[i], home)
+        phase_flip()
+        for i, s in reversed(list(enumerate(starts))):
+            _check_home(qc, gmap, s, plan, P(i), ok[i], home); _walk2(qc, gmap, s, plan, P(i))
+        return qc
+
+    def flag_only(i, s):                      # ok[i] ^= works_from(s); pos is clean again afterwards
+        _walk2(qc, gmap, s, plan, P(i))       #   compute
+        _check_home(qc, gmap, s, plan, P(i), ok[i], home)   # copy the answer into a flag
+        _walk2(qc, gmap, s, plan, P(i))       #   uncompute -> pos free for the next walk
+
+    for i, s in enumerate(starts[:-1]):
+        flag_only(i, s)
+    _walk2(qc, gmap, starts[-1], plan, P(0))  # last start: keep its walk while we flip the phase
+    _check_home(qc, gmap, starts[-1], plan, P(0), ok[-1], home)
+    phase_flip()
+    _check_home(qc, gmap, starts[-1], plan, P(0), ok[-1], home)
+    _walk2(qc, gmap, starts[-1], plan, P(0))
+    for i, s in reversed(list(enumerate(starts[:-1]))):
+        flag_only(i, s)                       # uncompute the earlier flags
+    return qc
+
+
+def plan_search_circuit(gmap: GridMap, starts, home: int, k: int, measure=True, honest=False) -> QuantumCircuit:
+    o = (bennett_plan_oracle if honest else compiled_plan_oracle)(gmap, starts, home)
+    plan = QuantumRegister(N_PLAN_QUBITS, "plan")
+    regs = [plan] + ([QuantumRegister(o.num_qubits - N_PLAN_QUBITS, "anc")] if o.num_qubits > N_PLAN_QUBITS else [])
+    qc = QuantumCircuit(*regs)
     d = diffuser(N_PLAN_QUBITS)
     qc.h(plan)                                   # |s> = uniform over all 64 plans
     for _ in range(k):
-        qc.compose(o, plan, inplace=True)        # reflect about |w_perp>
+        qc.compose(o, qc.qubits, inplace=True)   # reflect about |w_perp>
         qc.compose(d, plan, inplace=True)        # reflect about |s>
     if measure:
         qc.add_register(ClassicalRegister(N_PLAN_QUBITS, "moves"))
