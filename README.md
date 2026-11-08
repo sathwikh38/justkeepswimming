@@ -161,6 +161,13 @@ What the noise results show:
 
 ## What's next
 
+**Real IBM hardware results (pending).** The full experiment in `experiments/ibm_hardware.py`
+(54 circuits × 4,000 shots: success vs k, all 16 targets, honest oracles, stage 2, with and without
+error suppression) is queued on IBM's free plan. The Fall Fest queue is over 20,000 jobs deep. Job IDs, verifiable on
+IBM Quantum Platform: ibm_fez `dbo14f0ou4as73b5atrg`, `dbo14f8qtr0c73adqjkg`; backup on ibm_kingston
+`dbo1hroqtr0c73adrhb0`, `dbo1hs0qtr0c73adrhbg`. The same pipeline rehearsed on FakeTorino is in
+`results/hardware_rehearsal.json` and `results/rehearsal_fig7–9*.png`; measured results will be added here.
+
 Wall-segment oracle (cost ~ walls × log N instead of cells), continuous coordinates with ray casting
 and a tolerance ε, coarse-to-fine room-then-cell search, unknown M via randomized k (BBHT) or quantum
 counting, and Bennett's pebble game for longer plans.
