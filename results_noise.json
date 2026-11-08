@@ -1,0 +1,246 @@
+{
+ "device": "fake_torino",
+ "shots": 4000,
+ "rows": [
+  {
+   "series": "stage 1 lookup",
+   "N": 16,
+   "M": 1,
+   "k": 0,
+   "theory": 0.0625,
+   "measured": 0.05925,
+   "two_qubit_gates": 0,
+   "depth": 4
+  },
+  {
+   "series": "stage 1 lookup",
+   "N": 16,
+   "M": 1,
+   "k": 1,
+   "theory": 0.47265625,
+   "measured": 0.06575,
+   "two_qubit_gates": 1303,
+   "depth": 3075
+  },
+  {
+   "series": "stage 1 lookup",
+   "N": 16,
+   "M": 1,
+   "k": 2,
+   "theory": 0.908447265625,
+   "measured": 0.0625,
+   "two_qubit_gates": 2725,
+   "depth": 6788
+  },
+  {
+   "series": "stage 1 lookup",
+   "N": 16,
+   "M": 1,
+   "k": 3,
+   "theory": 0.9613189697265625,
+   "measured": 0.065,
+   "two_qubit_gates": 4150,
+   "depth": 10246
+  },
+  {
+   "series": "stage 1 lookup",
+   "N": 16,
+   "M": 1,
+   "k": 4,
+   "theory": 0.5817041397094724,
+   "measured": 0.0605,
+   "two_qubit_gates": 5577,
+   "depth": 14130
+  },
+  {
+   "series": "stage 1 formula",
+   "N": 16,
+   "M": 1,
+   "k": 0,
+   "theory": 0.0625,
+   "measured": 0.05925,
+   "two_qubit_gates": 0,
+   "depth": 4
+  },
+  {
+   "series": "stage 1 formula",
+   "N": 16,
+   "M": 1,
+   "k": 1,
+   "theory": 0.47265625,
+   "measured": 0.272,
+   "two_qubit_gates": 119,
+   "depth": 276
+  },
+  {
+   "series": "stage 1 formula",
+   "N": 16,
+   "M": 1,
+   "k": 2,
+   "theory": 0.908447265625,
+   "measured": 0.3375,
+   "two_qubit_gates": 250,
+   "depth": 564
+  },
+  {
+   "series": "stage 1 formula",
+   "N": 16,
+   "M": 1,
+   "k": 3,
+   "theory": 0.9613189697265625,
+   "measured": 0.26325,
+   "two_qubit_gates": 383,
+   "depth": 846
+  },
+  {
+   "series": "stage 1 formula",
+   "N": 16,
+   "M": 1,
+   "k": 4,
+   "theory": 0.5817041397094724,
+   "measured": 0.17075,
+   "two_qubit_gates": 529,
+   "depth": 1161
+  },
+  {
+   "series": "stage 1 compiled",
+   "N": 16,
+   "M": 1,
+   "k": 0,
+   "theory": 0.0625,
+   "measured": 0.05925,
+   "two_qubit_gates": 0,
+   "depth": 4
+  },
+  {
+   "series": "stage 1 compiled",
+   "N": 16,
+   "M": 1,
+   "k": 1,
+   "theory": 0.47265625,
+   "measured": 0.38975,
+   "two_qubit_gates": 35,
+   "depth": 146
+  },
+  {
+   "series": "stage 1 compiled",
+   "N": 16,
+   "M": 1,
+   "k": 2,
+   "theory": 0.908447265625,
+   "measured": 0.6515,
+   "two_qubit_gates": 71,
+   "depth": 290
+  },
+  {
+   "series": "stage 1 compiled",
+   "N": 16,
+   "M": 1,
+   "k": 3,
+   "theory": 0.9613189697265625,
+   "measured": 0.6055,
+   "two_qubit_gates": 107,
+   "depth": 433
+  },
+  {
+   "series": "stage 1 compiled",
+   "N": 16,
+   "M": 1,
+   "k": 4,
+   "theory": 0.5817041397094724,
+   "measured": 0.34725,
+   "two_qubit_gates": 143,
+   "depth": 577
+  },
+  {
+   "series": "stage 2 compiled",
+   "N": 64,
+   "M": 1,
+   "k": 0,
+   "theory": 0.015625,
+   "measured": 0.01325,
+   "two_qubit_gates": 0,
+   "depth": 4
+  },
+  {
+   "series": "stage 2 compiled",
+   "N": 64,
+   "M": 1,
+   "k": 1,
+   "theory": 0.13482666015625,
+   "measured": 0.05,
+   "two_qubit_gates": 225,
+   "depth": 678
+  },
+  {
+   "series": "stage 2 compiled",
+   "N": 64,
+   "M": 1,
+   "k": 2,
+   "theory": 0.34389519691467285,
+   "measured": 0.05,
+   "two_qubit_gates": 478,
+   "depth": 1353
+  },
+  {
+   "series": "stage 2 compiled",
+   "N": 64,
+   "M": 1,
+   "k": 3,
+   "theory": 0.5913801500573754,
+   "measured": 0.0405,
+   "two_qubit_gates": 703,
+   "depth": 2046
+  },
+  {
+   "series": "stage 2 compiled",
+   "N": 64,
+   "M": 1,
+   "k": 4,
+   "theory": 0.8163770193968958,
+   "measured": 0.0285,
+   "two_qubit_gates": 1017,
+   "depth": 2791
+  },
+  {
+   "series": "stage 2 compiled",
+   "N": 64,
+   "M": 1,
+   "k": 5,
+   "theory": 0.9635154816192113,
+   "measured": 0.01975,
+   "two_qubit_gates": 1250,
+   "depth": 3481
+  },
+  {
+   "series": "stage 2 compiled",
+   "N": 64,
+   "M": 1,
+   "k": 6,
+   "theory": 0.9965856807867991,
+   "measured": 0.0185,
+   "two_qubit_gates": 1506,
+   "depth": 4151
+  },
+  {
+   "series": "stage 2 compiled",
+   "N": 64,
+   "M": 1,
+   "k": 7,
+   "theory": 0.9074492475732605,
+   "measured": 0.015,
+   "two_qubit_gates": 1752,
+   "depth": 4888
+  },
+  {
+   "series": "stage 2 compiled",
+   "N": 64,
+   "M": 1,
+   "k": 8,
+   "theory": 0.7180421010897398,
+   "measured": 0.01975,
+   "two_qubit_gates": 2037,
+   "depth": 5673
+  }
+ ]
+}

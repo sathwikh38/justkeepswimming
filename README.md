@@ -78,6 +78,27 @@ Corner robot, M = 1, FakeTorino noise (random guess = 0.0625):
 - **Takeaway:** the honest oracle is cheap when the building is regular. How compressible
   the map is decides whether Grover's search can work on real hardware.
 
+## Noise on both stages (`run_noise.py`, `fig6_noise_both_stages.png`)
+
+FakeTorino noise model, 4,000 shots, transpiled with optimization level 3.
+
+| | Qubits searched | Theory best k | Noisy best k | Noisy P(success) | Random guess | 2q gates / iteration |
+|---|---|---|---|---|---|---|
+| Stage 1 lookup (honest) | 4 | 3 | – | 0.066 | 0.063 | 1,303 |
+| Stage 1 formula (honest) | 4 | 3 | 2 | **0.338** | 0.063 | 119 |
+| Stage 1 compiled (not honest) | 4 | 3 | 2 | 0.651 | 0.063 | 35 |
+| Stage 2 compiled (not honest) | 6 | 6 | 1–2 | 0.050 | 0.016 | 225 |
+
+Why stage 2 degrades so much more than stage 1:
+1. **Twice the iterations.** M = 1 of 64 needs k = 6; M = 1 of 16 needs k = 3.
+2. **Each iteration is ~6× more expensive.** The 6-qubit diffuser alone costs 134 two-qubit
+   gates on Torino (80 with all-to-all connectivity; the rest is SWAP routing), against 18 for
+   the 4-qubit diffuser. The 64-entry diagonal oracle costs 90, against 18.
+3. Together: ~1,500 two-qubit gates to reach the theory peak, so the signal is gone by k = 2.
+
+Takeaway: on today's hardware the search space, not just the oracle, sets the limit.
+Each extra qubit makes the diffuser's multi-controlled gate much deeper.
+
 ## Ideas to extend
 - Unknown M: use quantum counting or randomized k (BBHT), since a real robot
   doesn't know how ambiguous its reading is.
