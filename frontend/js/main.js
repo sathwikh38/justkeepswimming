@@ -20,12 +20,10 @@ seg("segWorld", (v) => {
 });
 seg("segView", (v) => {
   view = v;
-  $("maphint").style.display = "none";
   $("map").style.display = v === "2d" ? "block" : "none";
   $("three").style.display = v === "2d" ? "none" : "block";
   $("minimap").hidden = v !== "pov";
-  document.querySelector(".hint3d").textContent =
-    v === "pov" ? "Robo's eyes · switch to 2D or 3D to move Robo or home" : "drag Robo · right-click sets home · drag empty space to orbit";
+  setHowto();
   if (v !== "2d") {
     if (!window.THREE) {
       $("three").innerHTML =
@@ -53,13 +51,18 @@ $("overlay").onclick = (e) => {
   if (e.target.id === "overlay") $("overlay").hidden = true;
 };
 function setFoot() {
-  $("foot").textContent = !Q
-    ? "Qiskit data missing: run python -m experiments.precompute_ui · showing in-browser ideal maths"
-    : noisy
-      ? `Noisy · Qiskit Aer with the ${Q.device} noise model · compiled oracle, k ≤ 2 · ${Q.shots} shots`
-      : "Ideal · exact Qiskit statevector results";
+  $("foot").textContent = Q ? "" : "Qiskit data missing, showing browser simulation";
+}
+function setHowto() {
+  $("howto").textContent =
+    view === "pov"
+      ? "You're seeing through Robo's eyes. Switch to 2D or 3D to move Robo or set home."
+      : view === "3d"
+        ? "Drag Robo anywhere, right-click a square to set home, drag empty space to rotate."
+        : "Drag Robo anywhere, right-click a square to set home.";
 }
 setFoot();
+setHowto();
 $("reveal").onchange = render2D;
 drawMap();
 reset();

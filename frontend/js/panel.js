@@ -75,7 +75,7 @@ function setStats(N, M, k) {
 
 /* ---------------- stage cards (what happened, step by step) ---------------- */
 let STG = null;
-const STAGE_T = { 1: "STAGE 1 · WHERE AM I?", 2: "STAGE 2 · WAY HOME" };
+const STAGE_T = { 1: "STAGE 1: WHERE AM I?", 2: "STAGE 2: WAY HOME" };
 function stageStart(n, title) {
   if (STG && !STG.saved) stageSave("");
   const d = document.createElement("div");
@@ -123,10 +123,10 @@ function renderStats() {
     return;
   }
   box.innerHTML =
-    `<h4>STATS · CLASSICAL VS QUANTUM</h4>` +
+    `<h4>STATS: CLASSICAL VS QUANTUM</h4>` +
     TALLY.map(
       (t) =>
-        `<div class="row"><div class="lbl">${t.label}</div>${bars(t.c, t.q)}<div class="optnote">${(t.c / Math.max(1, t.q)).toFixed(1)}× fewer calls · ${t.qubits} qubits (honest oracle) · ${t.gates.toLocaleString()} two-qubit gates per call${t.noisy != null ? ` · noisy success ${pct(t.noisy)}` : ""}</div></div>`,
+        `<div class="row"><div class="lbl">${t.label}</div>${bars(t.c, t.q)}<div class="optnote">${(t.c / Math.max(1, t.q)).toFixed(1)}× fewer calls, ${t.qubits} qubits (honest oracle), ${t.gates.toLocaleString()} two-qubit gates per call${t.noisy != null ? `, noisy success ${pct(t.noisy)}` : ""}</div></div>`,
     ).join("") +
     `<div class="optnote">At 1,000,000 squares: 1,000,000 classical checks vs ≈785 Grover calls.</div>`;
 }

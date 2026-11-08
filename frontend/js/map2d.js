@@ -477,6 +477,5 @@ function render2D() {
   if (!S.dragging) L.robot.setAttribute("transform", at(S.pos));
   L.robot.style.opacity = stage === "setup" || document.getElementById("reveal").checked ? 1 : 0;
   svg.classList.toggle("setup", stage === "setup");
-  $("maphint").style.display = stage === "setup" && view === "2d" ? "block" : "none";
   if (view !== "2d") update3D();
 }

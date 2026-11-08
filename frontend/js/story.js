@@ -51,7 +51,7 @@ function setupView() {
   render2D();
   say(
     "lost",
-    `Drag Robo anywhere, right-click a square to set home.<br>Goal: <b>${goalName()}</b>`,
+    `Goal: <b>${goalName()}</b>`,
     [
       ["Start mission", start],
       ["Random drop", randomDrop, "alt"],
@@ -77,6 +77,7 @@ function reset() {
   build3D();
   $("stages").innerHTML = "";
   drawChart(Array(16).fill(1 / 4), new Set());
+  explain(16);
   setStep(null);
   phase("One bar per possibility. Height = amplitude; probability = height².");
   setStats(null);
@@ -213,7 +214,7 @@ async function mission() {
   render2D();
   // ---- stage 1: where am I? ----
   stageStart(1);
-  say("think", "Stage 1 · <b>Where am I?</b>");
+  say("think", "Stage 1: <b>Where am I?</b>");
   await scan();
   let cur;
   for (;;) {
@@ -222,7 +223,7 @@ async function mission() {
     const leg = findLeg(cur),
       d = bestMove(cur);
     if (leg && leg.goal === HOME) {
-      log(`one route works from all ${cur.length} · skip rescanning`);
+      log(`one route works from all ${cur.length}, skip rescanning`);
       await beat(`${cur.length} places match, but one 3-move route can work from all of them. No need to rescan.`, 2000);
       break;
     }
@@ -254,8 +255,8 @@ async function scan() {
   rds.push(rd);
   caption("Scanning walls…");
   if (view !== "2d") await rays3D(S.pos);
-  say("think", "Stage 1 · <b>Where am I?</b>", [], readingHTML(rd));
-  log(`scan ${rds.length} · walls <b>${DIRS.split("").filter((d, i) => rd[i]).join(" ") || "none"}</b>`);
+  say("think", "Stage 1: <b>Where am I?</b>", [], readingHTML(rd));
+  log(`scan ${rds.length}, walls <b>${DIRS.split("").filter((d, i) => rd[i]).join(" ") || "none"}</b>`);
   await beat(`I feel <b>${wallText(rd)}</b>. Which squares feel like this${rds.length > 1 ? " after that move" : ""}?`, 1600);
 }
 
@@ -270,7 +271,7 @@ async function locate() {
     `Checking all 16 squares at once${rds.length > 1 ? `, against all ${rds.length} scans` : ""}. Grover needs <b>${k} round${k === 1 ? "" : "s"}</b>.`,
     1600,
   );
-  log(`quantum · ${M} match · ${k} round${k === 1 ? "" : "s"}`);
+  log(`quantum, ${M} match, ${k} round${k === 1 ? "" : "s"}`);
   const a = await grover(16, marked, k, { f: shiftP, shift: hist.length > 0 });
   const pc = Array(16).fill(0);
   if (q) (noisy ? q.noisy : q.ideal).forEach((v, x) => (pc[endOf(x, hist)] += v));
@@ -280,7 +281,7 @@ async function locate() {
   const cur = curOf(C);
   const pf = q ? C.reduce((t, x) => t + (noisy ? q.noisy : q.ideal)[x], 0) : null;
   tally({
-    label: `Stage 1 · scan ${rds.length}`,
+    label: `Stage 1, scan ${rds.length}`,
     c: 16,
     q: k,
     qubits: q ? q.honest_qubits : 4 + 4 * rds.length,
@@ -288,12 +289,12 @@ async function locate() {
     noisy: noisy ? pf : null,
   });
   if (q && noisy) {
-    log(`noisy · ${pct(pf)} on matches (ideal ${pct(q.theory)}) · k capped at ${k}`);
-    log(`honest oracle: ${q.honest_qubits} qubits · ${q.honest_2q.toLocaleString()} 2q/call`);
+    log(`noisy, ${pct(pf)} on matches (ideal ${pct(q.theory)}), k capped at ${k}`);
+    log(`honest oracle: ${q.honest_qubits} qubits, ${q.honest_2q.toLocaleString()} 2q/call`);
   }
   S.ghosts = cur.length > 1 ? cur.slice() : [];
   render2D();
-  log(`→ ${cur.map((x) => `<b>${gridName(x)}</b> ${pct(pc[x])}`).join(" · ")}`);
+  log(`→ ${cur.map((x) => `<b>${gridName(x)}</b> ${pct(pc[x])}`).join(", ")}`);
   await beat(
     cur.length === 1
       ? `Measured: I'm in <b>${cellName(cur[0])}</b> (${pct(pc[cur[0]])} of measurements)`
@@ -315,7 +316,7 @@ async function relocate(d) {
   } else S.bump = { d, t0: performance.now() };
   render2D();
   hist.push(d);
-  log(`moved ${NAMES[d]} · rescan`);
+  log(`moved ${NAMES[d]}, rescan`);
   await beat(n === b ? `Bumped a wall going ${NAMES[d]}.` : `Moved ${NAMES[d]}.`, 900);
   await scan();
 }
@@ -332,13 +333,13 @@ async function planLeg(starts) {
     M = good.length,
     q = q2(starts, goal),
     k = noisy && q ? q.k_noisy : bestK(N, M);
-  stageStart(2, goal === HOME ? "STAGE 2 · WAY HOME" : `STAGE 2 · MEET AT ${gridName(goal)}`);
-  say("think", `Stage 2 · <b>${goal === HOME ? "How do I get home?" : "Bring every copy to one place"}</b>`);
+  stageStart(2, goal === HOME ? "STAGE 2: WAY HOME" : `STAGE 2: MEET AT ${gridName(goal)}`);
+  say("think", `Stage 2: <b>${goal === HOME ? "How do I get home?" : "Bring every copy to one place"}</b>`);
   S.ghosts = starts.length > 1 ? starts.slice() : [];
   render2D();
-  log(`${N} plans · ${PLAN_MOVES} moves · ${M} reach ${goalLabel(goal)}${starts.length > 1 ? ` from all ${starts.length}` : ""}`);
+  log(`${N} plans, ${PLAN_MOVES} moves, ${M} reach ${goalLabel(goal)}${starts.length > 1 ? ` from all ${starts.length}` : ""}`);
   if (goal !== HOME) {
-    log(`home is out of 3-move reach · meet at ${gridName(goal)} first`);
+    log(`home is out of 3-move reach, meet at ${gridName(goal)} first`);
     await beat(`No 3-move route reaches home${starts.length > 1 ? " from every copy" : ""}. First target: <b>${gridName(goal)}</b>, the closest square ${starts.length > 1 ? "every copy" : "I"} can reach.`, 2200);
   }
   const why = starts.length > 1 ? `that works from all ${starts.length} places I might be` : `from ${gridName(starts[0])}`;
@@ -353,7 +354,7 @@ async function planLeg(starts) {
     [best, pb] = [P[bi], cnt[bi] / 1000];
   }
   tally({
-    label: goal === HOME ? "Stage 2 · route home" : `Stage 2 · meet at ${gridName(goal)}`,
+    label: goal === HOME ? "Stage 2, route home" : `Stage 2, meet at ${gridName(goal)}`,
     c: N,
     q: k,
     qubits: q ? q.honest_qubits : 2 * PLAN_MOVES + 4 + starts.length,
@@ -362,10 +363,10 @@ async function planLeg(starts) {
   });
   log(`→ <b>${best.split("").join("→")}</b> ${pct(pb)}`);
   if (q && noisy) {
-    log(`noisy · ${pct(q.noisy_success)} on good routes (ideal ${pct(q.theory)}) · random ${pct(M / N)}`);
-    log(`honest Bennett oracle: ${q.honest_qubits} qubits · ${q.honest_2q.toLocaleString()} 2q/call`);
+    log(`noisy, ${pct(q.noisy_success)} on good routes (ideal ${pct(q.theory)}), random ${pct(M / N)}`);
+    log(`honest Bennett oracle: ${q.honest_qubits} qubits, ${q.honest_2q.toLocaleString()} 2q/call`);
   }
-  say("think", `Stage 2 · <b>${goal === HOME ? "How do I get home?" : `Meet at ${gridName(goal)}`}</b>`, [], planHTML(best));
+  say("think", `Stage 2: <b>${goal === HOME ? "How do I get home?" : `Meet at ${gridName(goal)}`}</b>`, [], planHTML(best));
   await beat(`Most-measured route: <b>${routeText(best)}</b> (${pct(pb)} of measurements)`, 1800);
   await drawRoutes(starts, best, goal);
   return { starts, goal, best };
@@ -403,12 +404,12 @@ async function walkLeg({ best, goal }) {
       S.pos = n;
     } else S.bump = { d, t0: performance.now() };
     render2D();
-    log(`walk ${d}${stuck ? " · wall" : ""}`);
+    log(`walk ${d}${stuck ? " (wall)" : ""}`);
     await beat(`Walking: step ${j + 1} of ${best.length}, ${NAMES[d]}`, 950);
   }
   const route = routeText(best);
   if (S.pos !== goal || S.ghosts.some((x) => x !== goal)) {
-    stageSave(`Route <b>${route}</b> · missed ${goalLabel(goal)}`);
+    stageSave(`Route <b>${route}</b> missed ${goalLabel(goal)}`);
     say("lost", `Noise picked a bad route: <b>${route}</b> doesn't bring every copy to ${goalLabel(goal)}.`);
     await beat(`Noise picked a bad route. Not every copy reached ${goalLabel(goal)}.`, 1800);
     return false;
@@ -417,7 +418,7 @@ async function walkLeg({ best, goal }) {
     S.ghosts = [];
     S.paths = [];
     render2D();
-    stageSave(`Met at <b>${cellName(goal)}</b> · location known`);
+    stageSave(`Met at <b>${cellName(goal)}</b>, location known`);
     await beat(`Every copy met at <b>${cellName(goal)}</b>. Now I know exactly where I am.`, 1800);
     return true;
   }
@@ -427,7 +428,7 @@ async function walkLeg({ best, goal }) {
     .fill(0)
     .map((_, x) => (x === HOME ? 0.4 : 0));
   render2D();
-  stageSave(`Route <b>${route}</b> · home`);
+  stageSave(`Route <b>${route}</b> reached home`);
   return true;
 }
 
