@@ -1,9 +1,10 @@
 """
 Stage 2: How do I get home?  (conformant planning with Grover's search)
 
-After stage 1 the robot may still have two possible starts. We want ONE plan of
-3 moves that brings it home from EVERY possible start. Walls block moves (the
-robot stays put), which is exactly what lets one plan line up two different walks.
+Find a plan of 3 moves that walks the robot home. The oracle checks the plan from
+every square the robot might be on (one square if stage 1 pinned it down, a few if
+lookalikes remain), so the same search also handles leftover uncertainty. Walls block
+moves (the robot stays put), which is what lets one plan line up different walks.
 
 Encoding: 2 qubits per move, 3 moves = 6 qubits = 64 plans.
     code 0=N, 1=E, 2=S, 3=W   (same order as localize.DIRS)

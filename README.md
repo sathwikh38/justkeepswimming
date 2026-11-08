@@ -5,8 +5,9 @@ sides of its cell have walls (N, E, S, W). It runs two Grover searches in Qiskit
 
 - **Stage 1 · Where am I?** Grover over the 16 cells (4 qubits) finds every cell that matches the
   reading. If several cells look alike, the robot moves, senses again, and the oracle checks both readings.
-- **Stage 2 · How do I get home?** If it is still unsure, Grover over all 64 three-move plans
-  (6 qubits) finds one plan that brings it home from **every** place it might be.
+- **Stage 2 · How do I get home?** Grover over all 64 three-move plans (6 qubits) finds a plan
+  that walks the robot home. The same oracle checks the plan from every square the robot might be
+  on, so if stage 1 leaves a few lookalikes, one plan gets it home from all of them, no rescan needed.
 
 Both oracles are built with Bennett's construction (compute → copy the answer into a phase or flag →
 uncompute): they see only the map and the readings, never the answer.
