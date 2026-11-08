@@ -16,6 +16,9 @@
       <div class="top">
         <div class="brand">JUST KEEP SWIMMING <span class="foot" id="foot"></span></div>
         <div class="ctrls">
+          <div class="seg" id="segMode">
+            <button data-v="mission" class="on">Mission</button><button data-v="race">Race</button><button data-v="oracle">Oracle</button><button data-v="routes">Routes</button>
+          </div>
           <div class="seg" id="segWorld">
             <button data-v="indoor" class="on">Indoor</button><button data-v="outdoor">Outdoor</button>
           </div>
@@ -66,7 +69,7 @@
           </div>
           <div class="box" id="chartbox">
             <div class="chead"><span class="ctitle">Grover's search: amplitude of every possibility</span><span class="cround" id="cround"></span></div>
-            <div class="steps" id="steps"><span data-s="sup">1. Superposition</span><span data-s="oracle">2. Oracle</span><span data-s="diff">3. Diffuser</span><span data-s="meas">4. Measure</span></div>
+            <div class="steps circ" id="steps"><span data-s="sup"><em>H</em>Superposition</span><i class="rep">× k rounds</i><span data-s="oracle"><em>Oracle</em><small>compute walls</small><small>compare + flip</small><small>uncompute</small></span><span data-s="diff"><em>Diffuser</em><small>mirror across average</small></span><span data-s="meas"><em>M</em>Measure</span></div>
             <svg
               id="chart"
               viewBox="0 0 560 210"
@@ -87,6 +90,7 @@
           </div>
         </div>
       </div>
+      <div class="showcase" id="showcase" hidden></div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
@@ -99,6 +103,7 @@
     <script src="js/search.js"></script>
     <script src="js/panel.js"></script>
     <script src="js/story.js"></script>
+    <script src="js/showcase.js"></script>
     <script src="js/main.js"></script>
   </body>
 </html>

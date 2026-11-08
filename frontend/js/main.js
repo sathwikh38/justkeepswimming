@@ -63,6 +63,17 @@ function setHowto() {
 }
 setFoot();
 setHowto();
+seg("segMode", (v) => {
+  const mission = v === "mission";
+  document.querySelector(".main").hidden = !mission;
+  $("showcase").hidden = mission;
+  ["segView", "showStats"].forEach((id) => ($(id).closest(".seg, .chk").style.visibility = mission ? "" : "hidden"));
+  SHOW.stop();
+  if (!mission) {
+    if (S.busy) reset(); // leaving a running mission
+    SHOW[v]();
+  }
+});
 $("reveal").onchange = render2D;
 drawMap();
 reset();
