@@ -31,7 +31,6 @@ lost_robot/
 │   ├── test_stage1.py
 │   └── test_stage2.py
 ├── frontend/                   # the demo (static HTML/JS, deployed on Vercel)
-├── LEARNING.md                 # course learning log
 └── requirements.txt
 ```
 
