@@ -1,16 +1,13 @@
 # Just Keep Swimming
 
-A rescue robot, named Dory, is lost in a flooded building. It has a map and a sensor that only tells it which
-sides of its cell have walls (N, E, S, W). It runs two Grover searches in Qiskit:
+A lost rescue robot, with no GPS, works out where it is and finds its way back home. It has a map of the building and uses what it senses around it to locate itself on the map and find a route home using Grover's Search Algorithm.
 
-- **Stage 1 · Where am I?** Grover over the 16 cells (4 qubits) finds every cell that matches the
-  reading. If several cells look alike, the robot moves, senses again, and the oracle checks both readings.
-- **Stage 2 · How do I get home?** Grover over all 64 three-move plans (6 qubits) finds a plan
-  that walks the robot home. The same oracle checks the plan from every square the robot might be
-  on, so if stage 1 leaves a few lookalikes, one plan gets it home from all of them, no rescan needed.
+The robot does this in two stages: 
 
-Both oracles are built with Bennett's construction (compute → copy the answer into a phase or flag →
-uncompute): they see only the map and the readings, never the answer.
+- **Stage 1 · Where am I?** Grover searches all 16 cells (4 qubits) for locations that match the robot's sensor reading. If several cells look alike, the robot moves, senses again, and uses both readings to narrow down its location.
+- **Stage 2 · How do I get home?** Grover searches all 64 possible three-move routes (6 qubits) to find a way home. If Stage 1 leaves multiple possible locations, it searches for a single route that works from all of them, without needing another scan.
+
+Both stages use Bennett's construction to build oracles that calculate which answers are correct using only the map and sensor readings, rather than knowing the answers in advance.
 
 **TL;DR**
 - **Problem:** a rescue robot lost in a known building (the kidnapped-robot problem) only feels which sides of its square have walls.
@@ -59,7 +56,7 @@ python -m http.server 8000 --directory frontend    # demo at http://localhost:80
 
 ## The demo
 
-Drag Dory anywhere (2D or 3D) and right-click a square to set home, then press **Start mission**:
+Drag Dory (the rescue robot) anywhere (2D or 3D) and right-click a square to set home, then press **Start mission**:
 Dory scans, runs Grover, decides whether to rescan or plan, draws its route from every place it
 might be, and walks home, narrating each step in the caption strip. **Auto / Step** under the map
 pauses at every step; **POV** shows the mission through Dory's eyes; **Ideal / Noisy** switches
@@ -73,7 +70,7 @@ diffuser steps in the browser. If the data file is missing, the page falls back 
 
 ## Theory
 
-With M matching items out of N, the start state is |s⟩ = sin θ |w⟩ + cos θ |w⊥⟩ with sin θ = √(M/N).
+With M matching cells out of N, the start state is |s⟩ = sin θ |w⟩ + cos θ |w⊥⟩ with sin θ = √(M/N).
 The oracle reflects about |w⊥⟩ and the diffuser reflects about |s⟩, so each iteration rotates by 2θ:
 
   **P(found after k iterations) = sin²((2k+1)θ)**, best k ≈ π/(4θ) − ½
