@@ -565,7 +565,7 @@ button {
   .main { flex: 1; min-height: 0; grid-template-columns: auto minmax(400px, 1fr); gap: 20px; }
   /* map side = available height minus caption strip and run bar, never wider than 62% of the window */
   /* map side: ~80% of the height left after the instructions, captions and run bar */
-  .left { width: min(calc((100vh - 196px) * 0.8), 50vw); }
+  .left { width: min(calc((100vh - 214px) * 0.8), 50vw); }
   .right { height: 100%; min-height: 0; }
   .rscroll { flex: 1; min-height: 120px; overflow-y: auto; padding-right: 2px; }
   #face { width: 70px; height: 64px; }
@@ -578,16 +578,17 @@ button {
 }
 
 .howto {
-  font: 13px Inter, system-ui, sans-serif; color: var(--muted); margin: 0 0 6px;
-  display: flex; align-items: center; gap: 8px;
+  margin: 0 0 8px; padding: 9px 14px; border-radius: 6px;
+  background: #fff4ec; border: 1px solid #f3c7a8; border-left: 4px solid var(--accent);
+  color: var(--ink); font: 600 15px/1.35 Inter, system-ui, sans-serif;
+  display: flex; align-items: center; gap: 10px;
 }
-.howto::before { content: "HOW TO"; font: 600 10px "IBM Plex Mono", monospace; letter-spacing: 0.08em;
-  color: var(--ink); border: 1px solid var(--line); background: var(--panel); border-radius: 3px; padding: 2px 5px; }
-.explain { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; margin: 6px 0 4px; }
-.explain > div { display: flex; gap: 8px; align-items: baseline; padding: 4px 6px; border-radius: 4px; transition: background 0.2s; }
+.howto::before { content: "HOW TO"; flex: none; font: 600 10.5px "IBM Plex Mono", monospace; letter-spacing: 0.08em;
+  color: #fff; background: var(--accent); border-radius: 3px; padding: 3px 6px; }
+.explain { display: flex; flex-direction: column; gap: 2px; margin: 6px 0 4px; }
+.explain > div { display: flex; gap: 10px; align-items: baseline; padding: 3px 8px; border-radius: 4px; transition: background 0.2s; }
 .explain span { flex: none; width: 92px; font: 600 11px "IBM Plex Mono", monospace; color: #8b959e; }
-.explain p { margin: 0; font-size: 12.5px; line-height: 1.4; color: var(--muted); }
+.explain p { margin: 0; font-size: 12.5px; line-height: 1.35; color: var(--muted); }
 .explain > div.on { background: #fdf0e8; }
 .explain > div.on span { color: var(--accent); }
 .explain > div.on p { color: var(--ink); }
-@media (max-width: 1200px) { .explain { grid-template-columns: 1fr; } }
