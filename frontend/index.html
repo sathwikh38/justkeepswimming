@@ -14,7 +14,7 @@
   <body>
     <div class="wrap">
       <div class="top">
-        <div class="brand">JUST KEEP SWIMMING</div>
+        <div class="brand">JUST KEEP SWIMMING <span class="foot" id="foot"></span></div>
         <div class="ctrls">
           <div class="seg" id="segWorld">
             <button data-v="indoor" class="on">Indoor</button><button data-v="outdoor">Outdoor</button>
@@ -30,7 +30,7 @@
       </div>
 
       <div class="main">
-        <div>
+        <div class="left">
           <div class="box" id="mapbox">
             <label class="maptog"><input type="checkbox" id="reveal" checked /> true position</label>
             <div class="maphint" id="maphint">drag Robo · right-click a square to set home</div>
@@ -51,6 +51,19 @@
             <button class="ghostbtn" id="compareBtn" hidden>Quantum vs classical</button>
             <button class="btn alt small" id="restartBtn">↺ Restart</button>
           </div>
+        </div>
+
+        <div class="right">
+          <div class="think">
+            <svg id="face" viewBox="0 0 120 110" aria-hidden="true"></svg>
+            <h2 id="bubble">where am I?</h2>
+          </div>
+          <div class="box" id="panel">
+            <div class="thought" id="thought"></div>
+            <div id="extra"></div>
+            <div class="btns" id="btns"></div>
+            <div class="stats" id="stats"></div>
+          </div>
           <div class="box" id="chartbox">
             <div class="chead"><span class="ctitle">Grover's search · amplitude of every possibility</span><span class="cround" id="cround"></span></div>
             <div class="steps" id="steps"><span data-s="sup">1 · Superposition</span><span data-s="oracle">2 · Oracle</span><span data-s="diff">3 · Diffuser</span><span data-s="meas">4 · Measure</span></div>
@@ -68,22 +81,10 @@
               ><span><i style="border: 1px dashed #9aa3ab; background: transparent"></i>before</span>
             </div>
           </div>
-        </div>
-
-        <div>
-          <div class="think">
-            <svg id="face" viewBox="0 0 120 110" aria-hidden="true"></svg>
-            <h2 id="bubble">where am I?</h2>
+          <div class="rscroll">
+            <div id="stages"></div>
+            <div class="box statsbox" id="statsbox" hidden></div>
           </div>
-          <div class="box" id="panel">
-            <div class="thought" id="thought"></div>
-            <div id="extra"></div>
-            <div class="btns" id="btns"></div>
-            <div class="stats" id="stats"></div>
-          </div>
-          <div id="stages"></div>
-          <div class="box statsbox" id="statsbox" hidden></div>
-          <div class="foot" id="foot"></div>
         </div>
       </div>
     </div>

@@ -570,3 +570,28 @@ button {
   outline: 1px solid var(--line); pointer-events: none; z-index: 2;
 }
 .minimap::after { content: "MAP"; position: absolute; left: 4px; top: 2px; font: 600 9px "IBM Plex Mono", monospace; color: var(--muted); }
+
+/* ---------- one-screen layout: map fills the height, side column stacks, only the log scrolls ---------- */
+.brand .foot { margin: 0 0 0 14px; letter-spacing: 0; font-weight: 400; }
+.right { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.right .think { margin: 0; }
+.right #chartbox { margin-top: 0; }
+.rscroll { display: flex; flex-direction: column; gap: 10px; }
+.rscroll #stages { margin-top: 0; }
+.rscroll .statsbox { margin-top: 0; }
+@media (min-width: 921px) {
+  .wrap { height: 100vh; display: flex; flex-direction: column; max-width: 1640px; padding: 12px 20px; }
+  .top { flex: none; margin-bottom: 10px; }
+  .main { flex: 1; min-height: 0; grid-template-columns: auto minmax(400px, 1fr); gap: 20px; }
+  /* map side = available height minus caption strip and run bar, never wider than 62% of the window */
+  .left { width: min(calc(100vh - 168px), 62vw); }
+  .right { height: 100%; min-height: 0; }
+  .rscroll { flex: 1; min-height: 0; overflow-y: auto; padding-right: 2px; }
+  #face { width: 88px; height: 80px; }
+  .think h2 { font-size: 30px; }
+  #panel { padding: 12px 16px; }
+  .thought { font-size: 16px; }
+  #chartbox { padding: 8px 12px 6px; flex: none; }
+  #chart { max-height: 34vh; }
+  .phase { min-height: 0; }
+}
