@@ -22,6 +22,7 @@ function wake() {
 /* ---------------- story state ---------------- */
 let hist = [],
   rds = [],
+  pool = 16, // hypotheses a classical robot still has to check (16, then the survivors)
   stage = "setup";
 const curOf = (C) => [...new Set(C.map((x) => endOf(x, hist)))];
 const shiftP = (a) => {
@@ -210,6 +211,7 @@ async function mission() {
   START = S.pos;
   hist = [];
   rds = [];
+  pool = 16;
   render2D();
   // ---- stage 1: where am I? ----
   stageStart(1);
@@ -279,10 +281,13 @@ async function locate() {
   S.amps = null;
   const cur = curOf(C);
   const pf = q ? C.reduce((t, x) => t + (noisy ? q.noisy : q.ideal)[x], 0) : null;
+  const p1 = pf ?? theory(16, M, k);
   tally({
     label: `Stage 1, scan ${rds.length}`,
-    c: 16,
-    q: k,
+    c: expChecks(pool, M), // a classical robot only rechecks the squares still in play
+    k,
+    q: k / Math.max(p1, 1e-9),
+    p: p1,
     qubits: q ? q.honest_qubits : 4 + 4 * rds.length,
     gates: q ? q.honest_2q : 0,
     noisy: noisy ? pf : null,
@@ -291,6 +296,7 @@ async function locate() {
     log(`noisy, ${pct(pf)} on matches (ideal ${pct(q.theory)}), k capped at ${k}`);
     log(`honest oracle: ${q.honest_qubits} qubits, ${q.honest_2q.toLocaleString()} 2q/call`);
   }
+  pool = M;
   S.ghosts = cur.length > 1 ? cur.slice() : [];
   render2D();
   log(`→ ${cur.map((x) => `<b>${gridName(x)}</b> ${pct(pc[x])}`).join(", ")}`);
@@ -354,8 +360,10 @@ async function planLeg(starts) {
   }
   tally({
     label: goal === HOME ? "Stage 2, route home" : `Stage 2, meet at ${gridName(goal)}`,
-    c: N,
-    q: k,
+    c: expChecks(N, M),
+    k,
+    q: k / Math.max(q ? (noisy ? q.noisy_success : q.ideal_success) : theory(N, M, k), 1e-9),
+    p: q ? (noisy ? q.noisy_success : q.ideal_success) : theory(N, M, k),
     qubits: q ? q.honest_qubits : 2 * PLAN_MOVES + 4 + starts.length,
     gates: q ? q.honest_2q : 0,
     noisy: noisy && q ? q.noisy_success : null,

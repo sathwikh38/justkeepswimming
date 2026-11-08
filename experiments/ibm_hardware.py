@@ -105,15 +105,26 @@ def wilson(p, n, z=1.96):
     return max(0.0, c - h), min(1.0, c + h)
 
 
+def classical_best(N, M, k):
+    """Best classical success with k oracle queries: check k distinct items, then guess one of the rest."""
+    miss = 1.0
+    for i in range(k):
+        miss *= (N - M - i) / (N - i)
+    return 1 - miss * (1 - M / (N - k)) if k < N else 1.0
+
+
 def analyse(e, counts):
     shots = sum(counts.values())
     hits = sum(v for b, v in counts.items() if int(b, 2) in set(e["marked"]))
     p, p0 = hits / shots, e["M"] / e["N"]
     lo, hi = wilson(p, shots)
+    pc = classical_best(e["N"], e["M"], e["k"])
     return dict(success=p, ci95=[lo, hi], shots=shots, random=p0,
                 z_vs_random=(p - p0) / math.sqrt(p0 * (1 - p0) / shots),
                 theory=theory_success(e["N"], e["M"], e["k"]),
-                classical_same_queries=min(1.0, (e["k"] + 1) * e["M"] / e["N"]),  # check k items, then guess
+                classical_same_queries=pc,
+                # one-sided test: is the quantum success above the best classical success with k queries?
+                z_vs_classical=(p - pc) / math.sqrt(max(pc * (1 - pc), 1e-12) / shots),
                 counts=counts)
 
 

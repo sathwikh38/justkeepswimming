@@ -105,15 +105,19 @@ const readingHTML = (rd) =>
     .join("")}</div>`;
 
 /* ---------------- stats (separate, only when toggled) ---------------- */
-// One row per Grover search: what a classical robot would check vs the quantum oracle calls.
+// One row per Grover search, compared fairly:
+//   classical: expected checks to find one answer by trying hypotheses in random order, (P+1)/(M+1)
+//   quantum:   k oracle calls per attempt, an attempt succeeds with probability p, so k/p expected calls
 let TALLY = [];
+const expChecks = (P, M) => (P + 1) / (M + 1);
+const r1 = (v) => (Math.round(v * 10) / 10).toLocaleString();
 function tally(row) {
   TALLY.push(row);
   renderStats();
 }
 function bars(c, q) {
   const w = (v) => Math.max(2, Math.round((100 * v) / Math.max(c, q, 1)));
-  return `<div class="opt"><span>classical checks</span><div class="bar" style="width:${w(c)}%"></div><span class="n">${c}</span><span>quantum calls</span><div class="bar q" style="width:${w(q)}%"></div><span class="n">${q}</span></div>`;
+  return `<div class="opt"><span>classical checks</span><div class="bar" style="width:${w(c)}%"></div><span class="n">${r1(c)}</span><span>quantum calls</span><div class="bar q" style="width:${w(q)}%"></div><span class="n">${r1(q)}</span></div>`;
 }
 function renderStats() {
   const box = $("statsbox");
@@ -123,12 +127,12 @@ function renderStats() {
     return;
   }
   box.innerHTML =
-    `<h4>STATS: CLASSICAL VS QUANTUM</h4>` +
+    `<h4>STATS: EXPECTED ORACLE QUERIES, CLASSICAL VS QUANTUM</h4>` +
     TALLY.map(
       (t) =>
-        `<div class="row"><div class="lbl">${t.label}</div>${bars(t.c, t.q)}<div class="optnote">${(t.c / Math.max(1, t.q)).toFixed(1)}× fewer calls, ${t.qubits} qubits (honest oracle), ${t.gates.toLocaleString()} two-qubit gates per call${t.noisy != null ? `, noisy success ${pct(t.noisy)}` : ""}</div></div>`,
+        `<div class="row"><div class="lbl">${t.label}</div>${bars(t.c, t.q)}<div class="optnote">${t.k} calls per attempt, ${pct(t.p)} success, ${t.qubits} qubits (honest oracle), ${t.gates.toLocaleString()} two-qubit gates per call</div></div>`,
     ).join("") +
-    `<div class="optnote">At 1,000,000 squares: 1,000,000 classical checks vs ≈785 Grover calls.</div>`;
+    `<div class="optnote">Counts oracle queries, not time. At 1,000,000 squares: about 500,000 classical checks on average (1,000,000 worst case) vs about 785 Grover calls, each a full circuit that encodes the map.</div>`;
 }
 
 /* ---------------- end-of-mission pop-up: quantum vs classical ---------------- */
@@ -138,17 +142,20 @@ function showSummary(outcome) {
     gates = TALLY.reduce((s, t) => s + t.q * t.gates, 0);
   $("modal").innerHTML = `
     <h3>${outcome}</h3>
-    <div class="sub">How many times each approach has to ask “is this the answer?”</div>
+    <div class="sub">Expected number of times each robot asks the oracle “is this the answer?”</div>
     <div class="vs">
-      <div><small>Classical robot</small><b>${c}</b><span>checks: every square, then every route, one at a time</span></div>
-      <div class="q"><small>Quantum robot (Grover)</small><b>${q}</b><span>oracle calls: all possibilities checked in superposition</span></div>
+      <div><small>Classical robot</small><b>${r1(c)}</b><span>expected checks, trying the squares or routes still in play one at a time</span></div>
+      <div class="q"><small>Quantum robot (Grover)</small><b>${r1(q)}</b><span>expected oracle calls, counting retries when a measurement misses</span></div>
     </div>
-    <table class="mt"><tr><th>Search</th><th>Classical</th><th>Quantum</th><th>Qubits</th><th>2q gates / call</th></tr>
-      ${TALLY.map((t) => `<tr><td>${t.label}</td><td class="n">${t.c}</td><td class="n">${t.q}</td><td class="n">${t.qubits}</td><td class="n">${t.gates.toLocaleString()}</td></tr>`).join("")}
+    <table class="mt"><tr><th>Search</th><th>Classical</th><th>Quantum</th><th>Success</th><th>Qubits</th><th>2q gates / call</th></tr>
+      ${TALLY.map((t) => `<tr><td>${t.label}</td><td class="n">${r1(t.c)}</td><td class="n">${r1(t.q)}</td><td class="n">${pct(t.p)}</td><td class="n">${t.qubits}</td><td class="n">${t.gates.toLocaleString()}</td></tr>`).join("")}
     </table>
-    <div class="honest"><b>${(c / Math.max(1, q)).toFixed(1)}× fewer calls</b>, and the gap grows with the map: 1,000,000 squares need
-      ≈785 Grover calls instead of 1,000,000 checks. The catch: each quantum call is a whole circuit
-      (${gates.toLocaleString()} two-qubit gates in total here), and ${noisy ? "on today's noisy hardware that much circuit washes most of the answer out." : "on today's noisy hardware that is too deep to survive. Switch to Noisy to see it."}</div>
+    <div class="honest">${q < c ? `<b>${(c / q).toFixed(1)}× fewer oracle queries.</b>` : `<b>No query advantage here</b>: noise makes the quantum search miss too often.`}
+      This counts queries, not time. The gap grows with the map: 1,000,000 squares need about 785 Grover calls
+      instead of about 500,000 checks on average. The catch: each quantum call is a whole circuit
+      (${Math.round(gates).toLocaleString()} two-qubit gates in total here), and with discrete wall readings a classical robot
+      could also precompute a reading-to-squares table and answer in one lookup.
+      ${noisy ? "Noise also lowers the quantum success rate, which raises the expected calls." : "Switch to Noisy to see what today's hardware noise does to it."}</div>
     <div class="btns"><button class="btn" id="mAgain">Run again</button><button class="btn alt" id="mClose">Close</button></div>`;
   $("overlay").hidden = false;
   $("mClose").onclick = () => ($("overlay").hidden = true);

@@ -12,6 +12,12 @@ sides of its cell have walls (N, E, S, W). It runs two Grover searches in Qiskit
 Both oracles are built with Bennett's construction (compute → copy the answer into a phase or flag →
 uncompute): they see only the map and the readings, never the answer.
 
+**TL;DR**
+- **Problem:** a rescue robot lost in a known building (the kidnapped-robot problem) only feels which sides of its square have walls.
+- **Quantum part:** two Grover searches in Qiskit, over 16 squares (where am I?) and over 64 three-move routes (how do I get home?), with honest Bennett oracles that know only the map.
+- **Best honest result:** under FakeTorino noise, the formula oracle finds the robot 34% of the time vs 6% for a random guess, and with 2 oracle queries Grover succeeds 64% of the time vs at most 19% for any classical strategy (compiled oracle).
+- **Limits:** the advantage is in oracle queries, not wall-clock time; stage 2 is near random under noise; real-hardware results are still queued at IBM.
+
 **Live demo:** https://lostneedhome.vercel.app 
 
 ## Project layout
@@ -167,6 +173,9 @@ What the noise results show:
 
 - Grover needs ~√(N/M) oracle calls instead of N classical checks, but the oracle must encode the map.
   On irregular maps that costs more gates than Grover saves.
+- With discrete wall readings, a classical robot can precompute a reading → squares table once and then
+  localize with a single lookup. Grover's advantage here is in **oracle queries** in the unstructured-search
+  model, which is what we measure. It becomes practically relevant only for sensors that can't be indexed.
 - Grover helps when a reading can only be **checked**, not worked backwards. Landmarks ("red door one
   cell east") can be inverted classically; continuous laser distances can only be checked, which is
   where this approach would scale.
