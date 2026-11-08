@@ -11,7 +11,7 @@ sides of its cell have walls (N, E, S, W). It runs two Grover searches in Qiskit
 Both oracles are built with Bennett's construction (compute → copy the answer into a phase or flag →
 uncompute): they see only the map and the readings, never the answer.
 
-**Live demo:** https://lostneedhome.vercel.app
+**Live demo:** https://lostneedhome.vercel.app · **Code:** https://github.com/sathwikh38/justkeepswimming
 
 ## Project layout
 
