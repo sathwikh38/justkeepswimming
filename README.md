@@ -1,6 +1,6 @@
 # Just Keep Swimming
 
-A rescue robot is lost in a flooded building. It has a map and a sensor that only tells it which
+A rescue robot, named Dory, is lost in a flooded building. It has a map and a sensor that only tells it which
 sides of its cell have walls (N, E, S, W). It runs two Grover searches in Qiskit:
 
 - **Stage 1 · Where am I?** Grover over the 16 cells (4 qubits) finds every cell that matches the
